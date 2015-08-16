@@ -1,0 +1,46 @@
+#ifndef DEBUG_H_
+#define DEBUG_H_
+
+#define NDEBUG
+
+#ifdef NDEBUG
+#include <assert.h>
+#include <stdio.h>
+#include <stdarg.h>
+static void inline Assert(bool cond, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	char msg[128];
+	::vsnprintf(msg, sizeof(msg), fmt, ap);
+	va_end(ap);
+	assert(cond && msg);
+}
+static void inline panic(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    char msg[128];
+    ::vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    assert(0 && msg);
+}
+
+static void inline Debug(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    ::vprintf(fmt, ap);
+    va_end(ap);
+}
+
+
+#else
+//namespace fphoenix {
+#define Assert(cond, message,...) do{}while(0)
+#define Debug(m,...) do{}while(0)
+#define panic(m,...) do{}while(0)
+//}
+#endif // NDEBUG
+
+#endif /* DEBUG_H_ */

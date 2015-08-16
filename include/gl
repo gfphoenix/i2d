@@ -1,0 +1,26 @@
+#ifndef _MY_GL_H_
+#define _MY_GL_H_
+#ifdef GL_ES
+#include <GLES2/gl2.h>
+#else
+#include <GL/glew.h>
+#include <GL/gl.h>
+#endif
+
+static inline void checkGLerror(const char *file, int line)
+{
+    auto e = glGetError();
+    Assert(e == GL_NO_ERROR, "gl Error @%s, line-%d\n", file, line);
+}
+#define CheckGL()   checkGLerror(__FILE__, __LINE__)
+
+class ScopeGLState final
+{
+    private:
+    GLenum state_;
+    public:
+    explicit ScopeGLState(GLenum state):state_(state){glEnable(state);}
+    ~ScopeGLState(){glDisable(state_);}
+};
+
+#endif
