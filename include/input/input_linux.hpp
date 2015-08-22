@@ -1,8 +1,7 @@
-#ifndef _GLVIEW_LINUX_HPP
-#define _GLVIEW_LINUX_HPP
-
+#ifndef CODE_LINUX_HPP_
+#define CODE_LINUX_HPP_
 #include <GLFW/glfw3.h>
-
+namespace Input {
 enum class KeyCode
 {
 KEY_UNKNOWN			 = GLFW_KEY_UNKNOWN,
@@ -130,11 +129,11 @@ KEY_LAST			 = GLFW_KEY_LAST,
 };
 enum KeyMods
 {
-    KEY_SHIFT = GLFW_MOD_SHIFT,
-    KEY_CTRL = GLFW_MOD_CONTROL,
-    KEY_ALT = GLFW_MOD_ALT,
-    KEY_SUPER = GLFW_MOD_SUPER,
+    MOD_SHIFT = GLFW_MOD_SHIFT,
+    MOD_CTRL = GLFW_MOD_CONTROL,
+    MOD_ALT = GLFW_MOD_ALT,
+    MOD_SUPER = GLFW_MOD_SUPER,
 };
+}
+#endif // CODE_LINUX_HPP_
 
-
-#endif

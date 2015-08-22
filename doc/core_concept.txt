@@ -1,0 +1,54 @@
+Director
+1. 管理Scene的切换, 游戏的结束
+2. 接收事件的输入，负责分发给当前运行的Scene
+3. 
+
+GLView
+1. 创建GL环境
+2. 创建事件消息
+3. 跟踪屏幕尺寸
+
+Scene
+1. 接收从Director发来的事件消息，并分发给StageLayer
+2. 创建并维护EventDispatcher， ActionManager， Scheduler
+
+StageLayer
+1. 拥有相机，处理不同分辨率策略的Layer
+2. 负责将屏幕坐标相关事件进行坐标转换，然后分发给子节点
+
+TextureManager
+1. 加载单个纹理对象，并维护
+2. 加载纹理地图集
+3. 恢复被销毁的纹理资源
+
+Node 渲染树节点
+1. 属性
+    xy
+    skew - rotation
+    scale
+    size
+    anchor
+
+    shader
+    parent
+    children
+    stageLayer
+
+    running
+    visible
+    
+    Mat : nodeToParentTransform, worldTransform, worldTransform_1
+
+2. 钩子
+    onEnter()
+    onExit()
+    beforeEnter()
+    afterEnter()
+    beforeExit()
+    afterExit()
+    onPause()
+    onResume()
+
+3. 渲染
+    visit()
+    DrawSelf()
