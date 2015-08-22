@@ -1,4 +1,4 @@
-#include <types>
+#include "types.hpp"
 #include <debug>
 #include <Scheduler.hpp>
 #include <algorithm>
@@ -11,12 +11,12 @@ class SNode
     protected:
         void *ptr_;
 	Scheduler::bFunc fn_;
-        string key_;
+        std::string key_;
         bool paused_;
         bool markRemove_;
         friend class Scheduler_vector;
     public:
-	SNode(void *ptr, const Scheduler::bFunc &fn, const string &key="")
+        SNode(void *ptr, const Scheduler::bFunc &fn, const std::string &key="")
             :ptr_(ptr), fn_(fn), key_(key), paused_(false),markRemove_(false){}
         SNode(const SNode &s)
             :ptr_(s.ptr_),fn_(s.fn_), key_(s.key_)
@@ -40,7 +40,7 @@ class SNode
             markRemove_ = s.markRemove_;
             return *this;
         }
-        const string &getKey()const{return key_;}
+        const std::string &getKey()const{return key_;}
         // return true if done, and should be removed.
 	inline bool update(float dt)const{return fn_(dt);}
 };
@@ -51,22 +51,22 @@ class Scheduler_vector : public Scheduler
         Scheduler_vector():paused_(false){}
 
 	virtual void update(float deltaTime)override;
-	virtual void schedulePtr(void *ptr, const string &key, const Scheduler::bFunc &fn)override;
+        virtual void schedulePtr(void *ptr, const std::string &key, const Scheduler::bFunc &fn)override;
 	//virtual void schedulePtr(void *ptr, const string &key, const Scheduler::func &fn)override;
-	virtual void schedulePtr(void *ptr, const string &key, const Scheduler::bFunc &fn, float delay, float interval, unsigned repeat)override;
+        virtual void schedulePtr(void *ptr, const std::string &key, const Scheduler::bFunc &fn, float delay, float interval, unsigned repeat)override;
 	virtual void unschedulePtrAll(void *ptr)override;
-	virtual void unschedulePtrOne(void *ptr, const string &key)override;
+        virtual void unschedulePtrOne(void *ptr, const std::string &key)override;
 	virtual void pausePtrAll(void *ptr)override;
-	virtual void pausePtrOne(void *ptr, const string &key)override;
+        virtual void pausePtrOne(void *ptr, const std::string &key)override;
 	virtual void resumePtrAll(void *ptr)override;
-	virtual void resumePtrOne(void *ptr, const string &key)override;
+        virtual void resumePtrOne(void *ptr, const std::string &key)override;
 	virtual void pause()override{paused_=true;}
 	virtual void resume()override{paused_=false;}
 	virtual void moveNode(Scheduler *to, Node *node)override;
         // active or inactive but not removed
-	virtual bool _isScheduled(void *ptr, const string &key)const override;
+        virtual bool _isScheduled(void *ptr, const std::string &key)const override;
         // inactive but not removed
-	virtual bool _isPaused(void *ptr, const string &key)const override;
+        virtual bool _isPaused(void *ptr, const std::string &key)const override;
     private:
 	//void schedulePtr__(void *ptr, const string &key, const Scheduler::bFunc &fn);
     public:
@@ -88,7 +88,7 @@ void Scheduler_vector::update(float deltaTime)
         }
     }
 }
-void Scheduler_vector::schedulePtr(void *ptr, const string &key, const Scheduler::bFunc &fn)
+void Scheduler_vector::schedulePtr(void *ptr, const std::string &key, const Scheduler::bFunc &fn)
 {
     auto tmp = std::find_if(vv_.begin(), vv_.end(),
 	    [ptr,&key](const SNode &sn){return sn.ptr_==ptr && sn.key_==key;});
@@ -130,7 +130,7 @@ bool interval_data::update(float dt, const Scheduler::bFunc &fn)
     return false;
 }
 
-void Scheduler_vector::schedulePtr(void *ptr, const string &key, const Scheduler::bFunc &fn, float delay, float interval, unsigned repeat)
+void Scheduler_vector::schedulePtr(void *ptr, const std::string &key, const Scheduler::bFunc &fn, float delay, float interval, unsigned repeat)
 {
     interval_data data(delay, interval, repeat);
     schedulePtr(ptr, key, [data,fn](float dt)mutable->bool {return data.update(dt, fn);});
@@ -143,7 +143,7 @@ void Scheduler_vector::unschedulePtrAll(void *ptr)
     }
    // std::for_each(vv_.begin(), vv_.end(), [ptr](SNode &sn){if(sn.ptr_==ptr)sn.markRemove_=true;});
 }
-void Scheduler_vector::unschedulePtrOne(void *ptr, const string &key)
+void Scheduler_vector::unschedulePtrOne(void *ptr, const std::string &key)
 {
     for(auto it=vv_.begin(),end=vv_.end(); it!=end; it++){
 	if(it->ptr_==ptr && it->key_==key)
@@ -162,7 +162,7 @@ void Scheduler_vector::pausePtrAll(void *ptr)
     }
     //std::for_each(vv_.begin(), vv_.end(), [ptr](SNode &s){if(s.ptr_==ptr)s.paused_=true;});
 }
-void Scheduler_vector::pausePtrOne(void *ptr, const string &key)
+void Scheduler_vector::pausePtrOne(void *ptr, const std::string &key)
 {
     for(auto it=vv_.begin(),end=vv_.end(); it!=end; it++){
 	if(it->ptr_==ptr && it->key_ == key)
@@ -182,7 +182,7 @@ void Scheduler_vector::resumePtrAll(void *ptr)
     }
    // std::for_each(vv_.begin(), vv_.end(),[ptr](SNode &s){if(s.ptr_==ptr)s.paused_=false;});
 }
-void Scheduler_vector::resumePtrOne(void *ptr, const string &key)
+void Scheduler_vector::resumePtrOne(void *ptr, const std::string &key)
 {
     for(auto it=vv_.begin(),end=vv_.end(); it!=end; it++){
 	if(it->ptr_==ptr && it->key_==key)
@@ -208,7 +208,7 @@ void Scheduler_vector::moveNode(Scheduler *to, Node *node)
     }
 }
 
-bool Scheduler_vector::_isScheduled(void *ptr, const string &key)const
+bool Scheduler_vector::_isScheduled(void *ptr, const std::string &key)const
 {
     auto it1 = std::find_if(vv_.begin(), vv_.end(), 
             [ptr,&key](const SNode &s){
@@ -216,7 +216,7 @@ bool Scheduler_vector::_isScheduled(void *ptr, const string &key)const
             });
     return (it1 != vv_.end()&& !it1->markRemove_);
 }
-bool Scheduler_vector::_isPaused(void *ptr, const string &key)const
+bool Scheduler_vector::_isPaused(void *ptr, const std::string &key)const
 {
     auto it1 = std::find_if(vv_.begin(), vv_.end(), 
             [ptr,&key](const SNode &s){

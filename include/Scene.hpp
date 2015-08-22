@@ -3,6 +3,7 @@
 
 #include "Ref.hpp"
 #include "Renderer.hpp"
+#include <functional>
 #include <string>
 #include <vector>
 class ActionManager;
@@ -10,7 +11,7 @@ class Scheduler;
 class Shader;
 class Renderer;
 class StageLayer;
-class Scene
+class Scene : public Ref
 {
     protected:
     Ref_ptr<StageLayer> main_;
@@ -23,6 +24,8 @@ class Scene
 
     public:
         Scene();
+        virtual ~Scene();
+        void onWinSizeChanged();
         void setMainStage(Ref_ptr<StageLayer> stage);
         void addMoreStage(Ref_ptr<StageLayer> stage, int prio);
         void updateStagePrio();
@@ -35,8 +38,10 @@ class Scene
         virtual void pollEvent();
         virtual void update(float dt);
 
-        //virtual void UseShader(Shader *);
-        //virtual void Render(Node *);
-        //virtual void Flush();
+        virtual void onEnter();
+        virtual void onExit();
+
+    protected:
+        void foreachStageLayer(const std::function<void(StageLayer *stage)> &fn);
 };
 #endif

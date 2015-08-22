@@ -5,7 +5,6 @@
 #include <ResourceManager.hpp>
 #include <Texture.hpp>
 #include <TextureLoader.hpp>
-#include <singletonfactory.hpp>
 class Texture2D;
 class TextureRegion2D;
 class TextureAtlas;
@@ -59,7 +58,7 @@ class Texture2D final: public Resource
         // origin point is at top left
         Ref_ptr<TextureRegion2D> getTextureRegion(int offx, int offy, int width, int height, RegionDirection dir);
         Ref_ptr<TextureRegion2D> getTextureRegion();
-        inline void bind()const{::glBindTexture(GL_TEXTURE_2D, id_);CheckGL();}
-        inline void unbind()const{::glBindTexture(GL_TEXTURE_2D,0);CheckGL();}
+        inline void bind()const{::glBindTexture(GL_TEXTURE_2D, id_);}
+        inline void unbind()const{::glBindTexture(GL_TEXTURE_2D,0);}
 };
 #endif /* _TEXTURE_MANAGER_HPP */

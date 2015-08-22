@@ -45,13 +45,11 @@ void Texture2D::init(const Image &img)
             panic("invalid CompType for image");
     }
     ::glGenTextures(1, &id_);
-    CheckGL();
     Assert(id_!=0, "Alloc texture id failed");
     bind();
-    CheckGL();
     ::glTexImage2D(GL_TEXTURE_2D, 0, (GLint)format_,
             width_, height_, 0, (GLenum)format_, GL_UNSIGNED_BYTE, img.getData());
-    CheckGL();
+    //CheckGL();
     ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ::glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

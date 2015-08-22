@@ -10,7 +10,7 @@
 static inline void checkGLerror(const char *file, int line)
 {
     auto e = glGetError();
-    Assert(e == GL_NO_ERROR, "gl Error @%s, line-%d\n", file, line);
+    Assert(e == GL_NO_ERROR, "gl Error @%s, line-%d, err=0x%x\n", file, line, e);
 }
 #define CheckGL()   checkGLerror(__FILE__, __LINE__)
 

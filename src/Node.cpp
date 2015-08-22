@@ -8,9 +8,9 @@
 #include <Director.hpp>
 #include <IdleContainer.hpp>
 #include <Node.hpp>
+#include <StageLayer.hpp>
 #include <Scene.hpp>
 #include <math.h>
-#include <config>
 #include <algorithm>
 
 
@@ -19,14 +19,13 @@ Node::Node()
 , pos_(0.0f, 0.0f)
 , size_(0.0f, 0.0f)
 , anchor_(.5f, .5f)
-, scaleX_(1)
-, scaleY_(1)
+, scale_(1.f, 1.f)
 , rotation_(0)
 , zIndex_(0)
 , am_(Director::getInstance()->getIdleContainer().getIdleActionManager())
 , sched_(Director::getInstance()->getIdleContainer().getIdleScheduler())
 , parent_(nullptr)
-, scene_(nullptr)
+, stage_(nullptr)
 , shader_(nullptr)
 , running_(false)
 , visible_(true)
@@ -40,19 +39,26 @@ Node::~Node()
 {
     Debug("Node::~Node\n");
 }
+Scene *Node::getScene()
+{
+    return stage_==nullptr ? nullptr : stage_->getScene();
+}
+
+void Node::onPause(){}
+void Node::onResume(){}
 void Node::beforeEnter()
 {
-    scene_ = parent_->scene_;
+    stage_ = parent_->stage_;
 }
 
 void Node::afterEnter()
 {
-    auto am = scene_->getActionManager();
+    auto am = getScene()->getActionManager();
     if(am_!=am){
         am_->moveNode(am, this);
         am_ = am;
     }
-    auto sch = scene_->getScheduler();
+    auto sch = getScene()->getScheduler();
     if(sch != sched_){
         // move scheduled task
         sched_->moveNode(sch, this);
@@ -61,31 +67,27 @@ void Node::afterEnter()
 }
 void Node::beforeExit()
 {
-
 }
 void Node::afterExit()
 {
-
 }
 
 void Node::onEnter(){
     Assert(!running_, "Node is running when onEnter");
     running_ = true;
     beforeEnter();
-	for(const auto& child : children_){
-		child->onEnter();
-	}
-   afterEnter();
-//    Debug("running onEnter()\n");
+    for(const auto& child : children_){
+        child->onEnter();
+    }
+    afterEnter();
 }
 void Node::onExit(){
     Assert(running_, "Node is not running when onExit");
-//    Debug("running onExit()\n");
     beforeExit();
-	for(const auto& child : children_){
-		child->onExit();
-	}
-	running_ = false;
+    for(const auto& child : children_){
+        child->onExit();
+    }
+    running_ = false;
     afterExit();
 }
 void Node::toRemove()
@@ -103,36 +105,36 @@ void Node::updateWorldTransform__(const Mat3 &parentTransform)
     onChangedTransformation();
 }
 // Mat3
-void Node::updateNodeToParentTransform__()
-{
-	Mat3 &id = nodeToParentTransform_;
-    double Cx=1, Sx=0, Cy=1, Sy=0;
-
-    if (skew_.x != 0){
-        Cx = cos(M_PI * skew_.x/180);
-        Sx = sin(M_PI * skew_.x/180);
-	}
-    if(skew_.y != 0){
-        Cy = cos(M_PI * skew_.y/180);
-        Sy = sin(M_PI * skew_.y/180);
-    }
-	double ax = size_.x * anchor_.x;
-	double ay = size_.y * anchor_.y;
-    double ta = Cy * scaleX_;
-    double tb = Sy * scaleX_;
-    double tc =-Sx * scaleY_;
-    double td = Cx * scaleY_;
-
-	// 0,1,  3,4,  6,7
-	id[0][0] = ta;
-	id[0][1] = tb;
-	id[1][0] = tc;
-	id[1][1] = td;
-	id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
-	id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
-    dirtyTransform_ = false;
-}
 void Node::updateNodeToParentTransform0__()
+{
+//    Mat3 &id = nodeToParentTransform_;
+//    double Cx=1, Sx=0, Cy=1, Sy=0;
+//
+//    if (skew_.x != 0){
+//        Cx = cos(M_PI * skew_.x/180);
+//        Sx = sin(M_PI * skew_.x/180);
+//    }
+//    if(skew_.y != 0){
+//        Cy = cos(M_PI * skew_.y/180);
+//        Sy = sin(M_PI * skew_.y/180);
+//    }
+//    double ax = size_.x * anchor_.x;
+//    double ay = size_.y * anchor_.y;
+//    double ta = Cy * scaleX_;
+//    double tb = Sy * scaleX_;
+//    double tc =-Sx * scaleY_;
+//    double td = Cx * scaleY_;
+//
+//    // 0,1,  3,4,  6,7
+//    id[0][0] = ta;
+//    id[0][1] = tb;
+//    id[1][0] = tc;
+//    id[1][1] = td;
+//    id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
+//    id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
+//    dirtyTransform_ = false;
+}
+void Node::updateNodeToParentTransform__()
 {
     Mat3 &id = nodeToParentTransform_;
     double C=1, S=0;
@@ -143,10 +145,10 @@ void Node::updateNodeToParentTransform0__()
     }
     double ax = size_.x * anchor_.x;
     double ay = size_.y * anchor_.y;
-    double ta = C * scaleX_;
-    double tb = S * scaleX_;
-    double tc =-S * scaleY_;
-    double td = C * scaleY_;
+    double ta = C * scale_.x;
+    double tb = S * scale_.x;
+    double tc =-S * scale_.y;
+    double td = C * scale_.y;
 
     // 0,1,  3,4,  6,7
     id[0][0] = ta;
@@ -161,7 +163,7 @@ void Node::sortChildrenOrder__()
 {
     std::stable_sort(children_.begin(), children_.end(),
             [](const Ref_ptr<Node> &l, const Ref_ptr<Node> &r)->bool{
-                return l->zIndex_ < r->zIndex_;
+            return l->zIndex_ < r->zIndex_;
             });
     dirtyChildrenOrder_ = false;
 }
@@ -192,7 +194,7 @@ void Node::removeAll()
         if(child->running_)
             child->onExit();
         child->parent_ = nullptr;
-        child->scene_ = nullptr;
+        child->stage_ = nullptr;
         children_.pop_back();
     }
     dirtyChildrenOrder_ = false;
@@ -207,7 +209,7 @@ void Node::removeChild(Node *child)
         child->onExit();
     toRemove();
     child->parent_ = nullptr;
-    child->scene_ = nullptr;
+    child->stage_ = nullptr;
     children_.erase(x);
     dirtyChildrenOrder_ = true;
 }
@@ -217,14 +219,13 @@ void Node::remove()
     if(parent != nullptr){
         parent->removeChild(this);
     }
+    // else remove stage-layer
 }
 // render && visit
 void Node::DrawSelf(Renderer *)
 {
-    //Debug("Draw - %s\n", name_.c_str());
-//    UNUSED(_);
 }
-void Node::visit(Renderer *scene, const Mat3 &parentTransform, bool parentTransformUpdated)
+void Node::visit(Renderer *renderer, const Mat3 &parentTransform, bool parentTransformUpdated)
 {
     if(!visible_)
         return ;
@@ -235,7 +236,7 @@ void Node::visit(Renderer *scene, const Mat3 &parentTransform, bool parentTransf
         updateWorldTransform__(parentTransform);
 
     if(children_.empty()){
-        this->DrawSelf(scene);
+        this->DrawSelf(renderer);
         return;
     }
 
@@ -243,11 +244,11 @@ void Node::visit(Renderer *scene, const Mat3 &parentTransform, bool parentTransf
     for(;child!=children_.cend();child++){
         if((*child)->getZindex() >= 0)
             break;
-        (*child)->visit(scene, worldTransform_, dirty);
+        (*child)->visit(renderer, worldTransform_, dirty);
     }
-    this->DrawSelf(scene);
+    this->DrawSelf(renderer);
     for(; child != children_.cend(); child++){
-        (*child)->visit(scene, worldTransform_, dirty);
+        (*child)->visit(renderer, worldTransform_, dirty);
     }
 }
 void Node::runAction(const Ref_ptr<Action> &action)
@@ -273,7 +274,7 @@ void Node::resumeAction(Action *a)
 
 void Node::clearActions()
 {
-    Assert(scene_ != nullptr, "Scene is nullptr");
+    Assert(stage_ != nullptr, "Scene is nullptr");
     am_->removeActionsForNode(this);
 }
 

@@ -1,16 +1,15 @@
 #ifndef _APP_HPP_
 #define _APP_HPP_
+#include "Main.hpp"
 #include "Ref.hpp"
-#include <functional>
-#include <string>
 class App : public Ref
 {
     protected:
-        static App *app_;
+        static Ref_ptr<App> app_;
+        Hooks hooks;
         virtual ~App(){}
     public:
-        static Ref_ptr<App> getInstance();
-        const std::string getInfo()const{return std::string("App ");}
+        static App *getInstance();
         enum class Platform
         {
             Unknown,
@@ -19,10 +18,10 @@ class App : public Ref
             Ios,
         };
         App():Ref(){}
-        bool main();
-        void onEnterBackground();
-        void onEnterForeground();
+
+        virtual void onEnterBackground();
+        virtual void onEnterForeground();
         virtual Platform getPlatform()const{return Platform::Unknown;}
-        virtual void go()=0;
+        virtual void go(const Hooks &hooks)=0;
 };
 #endif

@@ -1,92 +1,62 @@
 #ifndef _CAMERA_HPP
 #define _CAMERA_HPP
 #include "types.hpp"
-#include "Ref.hpp"
+#include <glm/matrix.hpp>
+//#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 
-class Camera : public Ref
+class Camera
+// : public Ref
 {
 
     public:
-    inline const Mat4 &getPV()const{return PV_;}
-    inline Mat4 &getPV(){return PV_;}
+        inline const Mat4 &getPV()const{return PV_;}
+        inline const Mat4 &getPV_1()const{return PV_1;}
+        inline const Vec2 &getEye()const{return eye_;}
+        // affect camera position in world space
+        inline void setEye__(float x, float y){setEye__(Vec2(x,y));}
+        inline void setEye__(const Vec2 &eye){this->eye_ = eye;}
+        inline void setEye(float x, float y){setEye(Vec2(x,y));}
+        inline void setEye(const Vec2 &eye)
+        {
+            setEye__(eye);
+            update();
+        }
 
-    // affect camera position in world space
-    inline void setEye(const Vec2 &eye)
-    {
-        this->eye_ = eye;
-        update();
-    }
-    inline void setProj(const Mat4 &proj)
-    {
-        this->proj_ = proj;
-        update();
-    }
+        inline void setProj__(const Mat4 &proj){this->proj_ = proj;}
+        inline void setProj(const Mat4 &proj)
+        {
+            setProj__(proj);
+            update();
+        }
 
-    // just affect projection matrix in eye space
-    inline void Orth2d(float left, float right, float bottom, float top)
-    {
-        auto m = glm::ortho(left, right, bottom, top);
-        setProj(m);
-    }
+        // just affect projection matrix in eye space
+        inline void ortho2d__(float left, float right, float bottom, float top)
+        {
+            auto m = glm::ortho(left, right, bottom, top);
+            setProj__(m);
+        }
+        inline void ortho2d(float left, float right, float bottom, float top)
+        {
+            ortho2d__(left, right, bottom, top);
+            update();
+        }
 
-protected:
-    inline void update()
-    {
-        PV_ = proj_ * glm::lookAt(
-                    Vec3(eye_, 1),
+        inline void update()
+        {
+            PV_ = proj_ * glm::lookAt(
+                    Vec3(eye_, 0),
                     Vec3(eye_, -1),
                     Vec3(0, 1, 0)
                     );
-    }
-Mat4 PV_;
-Mat4 proj_;
-Vec2 eye_;
-};
-
-class OrthCamera : public Camera
-{
-    float left_;
-    float right_;
-    float bottom_;
-    float top_;
-    //float zoomFactor_;//
-    public:
-    OrthCamera(int width, int height)
-        : left_(0)
-          , right_(width)
-          , bottom_(0)
-          , top_(height)
-    {
-        PV_ = glm::ortho(left_, right_, bottom_, top_);
-    }
-    OrthCamera(){}
-    void init(int width, int height)
-    {
-        left_ = bottom_ = 0;
-        right_ = width;
-        top_ = height;
-        PV_ = glm::ortho(left_, right_, bottom_, top_);
-    }
-    //inline void setZoomFactor(float factor){zoomFactor_=factor;}
-    //inline float getZoomFactor()const{return zoomFactor_;}
-    inline void setZoomFactor(float factor){PV_[3][3] = 1.0/factor;}
-    inline float getZoomFactor()const{return 1.0/PV_[3][3];}
-    void move(float dx, float dy){
-        left_   += dx;
-        right_  += dx;
-        bottom_ += dy;
-        top_    += dy;
-        update();
-    }
+            PV_1 = glm::inverse(PV_);
+        }
     protected:
-    inline void update(){
-        float zoom = PV_[3][3];
-        PV_ = glm::ortho(left_, right_, bottom_, top_);
-        PV_[3][3] = zoom;
-    }
+        Mat4 PV_;
+        Mat4 PV_1; // inverse matrix of pv
+        Mat4 proj_;
+        Vec2 eye_;
 };
-
 
 #endif /* _CAMERA_HPP */

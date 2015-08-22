@@ -12,10 +12,10 @@ public:
 
 
     // predefined error
-    static Cerror Eexist;
-    static Cerror Eperm;
-    static Cerror Enospace;
-    static Cerror Eio;
+    static const Cerror Eexist;
+    static const Cerror Eperm;
+    static const Cerror Enospace;
+    static const Cerror Eio;
 };
 
 #endif // CERROR

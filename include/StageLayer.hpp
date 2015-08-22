@@ -26,25 +26,31 @@ protected:
     Vec2 viewOrigin_;
     ResolutionPolicy policy_;
     int prio_;
+    friend class Scene;
 public:
     StageLayer(const Vec2 &designSize, ResolutionPolicy policy);
-    ResolutionPolicy getResolutionPolicy()const{return policy_;}
+    virtual Scene *getScene()override{return scene_;}
+    virtual StageLayer *getStageLayer()override{return this;}
+    void onWinSizeChanged();
+    inline ResolutionPolicy getResolutionPolicy()const{return policy_;}
     inline int getPrio()const{return prio_;}
     inline void setPrio(int prio){prio_=prio;}
-    inline void glViewport()const
+    inline void setViewport()const
     {
-        ::glViewport(viewOrigin_.x, viewOrigin_.y, viewSize_.x, viewSize_.y);
+        ::glViewport((int)viewOrigin_.x, (int)viewOrigin_.y, (int)viewSize_.x, (int)viewSize_.y);
     }
-    const Camera &getCamera()const{return camera_;}
+    inline const Camera &getCamera()const{return camera_;}
+    inline Camera &getCamera(){return camera_;}
     // screen size
     const Vec2 &getViewSize()const{return viewSize_;}
     const Vec2 &getViewOrigin()const{return viewOrigin_;}
+    Vec2 screenToWorld(float screenX, float screenY);
+    inline Vec2 screenToWorld(const Vec2 &screen)
+    {return screenToWorld(screen.x,screen.y);}
 
     const Vec2 &getDesignSize()const{return designSize_;}
     virtual void Render(Renderer *renderer);
-    virtual void Flush(Renderer *renderer);
-
+    virtual void beforeEnter()override;
 };
 
 #endif // STAGELAYER
-

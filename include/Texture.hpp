@@ -1,6 +1,6 @@
 #ifndef _TEXTURE2D_H
 #define _TEXTURE2D_H
-#include "config.hpp"
+#include "types.hpp"
 #include <memory>
 #include <Ref.hpp>
 #include <ResourceManager.hpp>

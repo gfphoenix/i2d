@@ -7,11 +7,13 @@
 class Node;
 class Renderer;
 class Scene;
+class StageLayer;
 class Shader : public Ref {
     public:
         static GLuint loadStrings(const char *vertexString, const char *fragString);
         static GLuint loadFiles(const char *vertexFile, const char *fragFile);
-	static Shader *getDefaultShader();
+        static Shader *getDefaultShader();
+        inline void use()const{glUseProgram(id_);}
         virtual const std::string getInfo()const{return "Shader ";}
 
 //	inline void addRenderCall(Scene *scene){scene->addRenderCall();}
@@ -30,7 +32,7 @@ class Shader : public Ref {
         //virtual void LimitBatchNumber(int min, int max)=0;
         virtual void Use(Renderer *renderer)=0;
         virtual void Render(Renderer *renderer, Node *node)=0;
-        virtual void Flush(Renderer *renderer, StageLayer *stage)=0;
+        virtual void Flush(Renderer *renderer)=0;
 
         //inline void getUniformfv(GLint location, GLfloat *params) const {
         //  glGetUniformfv(id_, location, params);

@@ -1,8 +1,8 @@
+#include <Renderer.hpp>
 #include <Scene.hpp>
 #include <Sprite.hpp>
-#include <string.h>
 #include <defaultShader.hpp>
-
+#include <string.h>
 Sprite::~Sprite()
 {
 }
@@ -11,7 +11,8 @@ Sprite::Sprite()
      , flipX_(false)
      , flipY_(false)
 {
-    setShader(Shader::getDefaultShader());
+    auto sh = Shader::getDefaultShader();
+    setShader(sh);
     fillColor();
 }
 
@@ -21,8 +22,8 @@ void Sprite::DrawSelf(Renderer *renderer)
         return;
     auto shader = getShader();
     fillQuad();
-    renderer->UseShader(shader);
-    shader->Render(this);
+    renderer->Use(shader);
+    shader->Render(renderer, this);
 }
 void Sprite::onChangedTransformation()
 {
@@ -91,6 +92,7 @@ void Sprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool reset
 }
 void Sprite::setFlipX__()
 {
+    flipX_ = !flipX_;
     std::swap(quad_.bl.t, quad_.tl.t);
     std::swap(quad_.br.t, quad_.tr.t);
 }

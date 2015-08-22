@@ -3,7 +3,7 @@
 #include "Ref.hpp"
 #include "Event.hpp"
 #include "EventListener.hpp"
-#include "GLView_linux.hpp"
+#include "input/input.hpp"
 
 #include <algorithm>
 #include <vector>

@@ -3,6 +3,7 @@
 #include <Camera.hpp>
 #include <StageLayer.hpp>
 #include <Scene.hpp>
+#include <Shader.hpp>
 #include <mm.hpp>
 #include <gl>
 #include <vector>
@@ -15,6 +16,7 @@ void dShader::init2()
     texSampler_ = Shader::getUniformLocation("mySampler2D");
     pv_ = getUniformLocation("myPV");
     glGenBuffers(1, &vbo_);
+    printf("dShader::init2 vbo = %d\n", vbo_);
 }
 //Shader *dShader::shader_=nullptr;
 Shader *Shader::getDefaultShader()
@@ -37,6 +39,7 @@ void dShader::init(GLuint program)
     setProgramId(program);
     min_ = 8192;
     max_ = 16384;
+
     init2();
     buffer_.reserve(min_);
     Debug("model=%d, uv=%d, color=%d, texSampler=%d, pv=%d, vbo=%d\n",
@@ -48,16 +51,21 @@ dShader::~dShader()
     uv_ = Shader::getAttribLocation("uv");
     color_ = Shader::getAttribLocation("color");
     glDeleteBuffers(1, &vbo_);
+    vbo_ = -1;
+    printf("dShader::~dShader \n");
     //Shader::~Shader();
 }
-void dShader::LimitBatchNumber(int min, int max)
-{
-    min_ = min;
-    max_ = max;
-    buffer_.reserve(min);
-}
+//void dShader::LimitBatchNumber(int min, int max)
+//{
+//    min_ = min;
+//    max_ = max;
+//    buffer_.reserve(min);
+//}
 
-void dShader::Use(Scene *scene){}
+void dShader::Use(Renderer *renderer)
+{
+    use();
+}
 class BaseSprite;
 void dShader::Render(Renderer *renderer, Node*node)
 {
@@ -100,19 +108,16 @@ void dShader::Render(Renderer *renderer, Node*node)
         }
     }
 }
-void dShader::Flush(Renderer *renderer, StageLayer *stage)
+void dShader::Flush(Renderer *renderer)
 {
-//    Debug("dShader flush 0\n");
     if(lastTexture_==nullptr || buffer_.size()==0)
         return;
-//    Debug("dShader flush 1\n");
-    Shader::Use(renderer);
+    Use(renderer);
     CheckGL();
 
     // Send our transformation to the currently bound shader, 
     // in the "MVP" uniform
-    auto &pv = scene->getCamera()->getMat();
-    auto const &pv = stage->getc
+    auto const &pv = renderer->getCamera().getPV();
     glUniformMatrix4fv(pv_, 1, GL_FALSE, &pv[0][0]);
     CheckGL();
     if(false){
@@ -129,7 +134,7 @@ void dShader::Flush(Renderer *renderer, StageLayer *stage)
         printf("center xy=(%f, %f, %f, %f)\n", cc.x, cc.y, cc.z, cc.w);
 
     }
-    {
+    if(false){
         auto id = lastTexture_->getId();
         auto ok = glIsTexture(id) == GL_TRUE;
         if(!ok){
@@ -137,12 +142,11 @@ void dShader::Flush(Renderer *renderer, StageLayer *stage)
         }
         ok = glIsBuffer(vbo_) == GL_TRUE;
         if(!ok){
-            printf("Bad buffer");
+            printf("Bad buffer %d = \n", vbo_);
         }
 
     }
 
-    ScopeGLState tex__(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_2D);
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0);
@@ -151,7 +155,7 @@ void dShader::Flush(Renderer *renderer, StageLayer *stage)
     glUniform1i(texSampler_, 0);
     CheckGL();
 
-    ScopeGLState blend__(GL_BLEND);
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
@@ -193,20 +197,15 @@ void dShader::Flush(Renderer *renderer, StageLayer *stage)
             );
     CheckGL();
 
-    // Draw the triangle !
-    //Debug("draw size = %d, sizeof stride=%d\n", buffer_.size(), sizeof(V2F_T2F_C4F));
-   // glDrawArrays(GL_TRIANGLE_STRIP, 0, buffer_.size()); // 12*3 indices starting at 0 -> 12 triangles
     glDrawArrays(GL_TRIANGLES, 0, buffer_.size());
-    CheckGL();
+    //CheckGL();
 
     glDisableVertexAttribArray(model_xy_);
     glDisableVertexAttribArray(uv_);
     glDisableVertexAttribArray(color_);
-    CheckGL();
+    glDisable(GL_BLEND);
     Unuse();
-    //GLfloat *data = (GLfloat*)&buffer_[0];
-    //Debug("size=%d\n", buffer_.size());
     buffer_.clear();
-    addRenderCall(scene);
+    renderer->addRenderCall();
 }
 

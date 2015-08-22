@@ -1,4 +1,4 @@
-#include <config>
+#include <types.hpp>
 #include <Texture.hpp>
 #include <mm.hpp>
 RegionDirection TextureRegion2D::getRegionDirection()const

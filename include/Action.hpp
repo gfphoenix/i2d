@@ -106,7 +106,7 @@ public:
     virtual ~Sequence(){}
     virtual void setNode(Node *node)override;
 virtual void step(float dt)override{actions_[idx_]->step(dt);}
-    virtual bool isDone()const override{return idx_==actions_.size();}
+    virtual bool isDone()const override{return idx_==(int)actions_.size();}
 	virtual void update()override;
     virtual void reset()override;
     int idx_;
@@ -126,7 +126,7 @@ public:
     virtual bool isDone()const override;
     inline void initData(size_t n)
     {
-
+        (void)n;
     }
 
     char *data; // 0~size()-1 : -1 => no exe; 0 => running or done. [size()] left running actions

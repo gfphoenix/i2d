@@ -1,89 +1,62 @@
-/*
- * Main.cpp
- *
- *  Created on: Jul 16, 2008
- *      Author: wuhao
- */
-
 #include <App.hpp>
-#include <Node.hpp>
-#include <Scene.hpp>
-#include <iostream>
+#include <Director.hpp>
+#include <types.hpp>
 #include <stdio.h>
-#include <VertexUVColor.hpp>
+#include <Scene.hpp>
+#include <StageLayer.hpp>
+#include <Sprite.hpp>
+#include <Texture.hpp>
+#include <TextureLoader.hpp>
+#include <TextureManager.hpp>
 #include <mm.hpp>
-
-using namespace std;
-//using namespace fphoenix;
-void dumpChild(Node *n)
+Vec2 S = Vec2(480, 800);
+static bool init()
 {
-    auto &children = n->getChildren();
-    for(auto ch : children){
-        printf("Node - %s, zIndex=%d\n", ch->getName().c_str(), ch->getZindex());
-    }
-}
-int mainx()
-{
-	Scene node;
-    node.setName("Scene");
-	//std::cout<<node.getModelMat()<<endl;
-	auto &&m = node.getWorldTransform();
-    for(auto i=0; i<4; i++){
-        for(auto j=0; j<4; j++)
-            printf("%f ", m[j][i]);
-        printf("%s", "\n");
-    }
-    auto n1 = MM<Node>::New();
-    auto n2 = MM<Node>::New();
-    //auto n1 = New(Node);
-    //auto n2 = New(Node);
-    n1->setName("N1");
-    n2->setName("N2");
-    n1->setZindex(4);
-    std::cout<<"n1's name = "<< n1->getName() << std::endl;
-    std::cout<<"n2's name = "<< n2->getName() << std::endl;
-    //node.addChild(Ref_ptr<Node>(n1));
-    //node.addChild(Ref_ptr<Node>(n2));
-    node.addChild((n1));
-    node.addChild((n2));
+    CheckGL();
+    auto scene = MM<Scene>::New();
+    CheckGL();
+    auto stage = MM<StageLayer>::New(S, ResolutionPolicy::FULL);
+    CheckGL();
+    auto sprite = MM<Sprite>::New();
+    CheckGL();
+    auto tm = TextureManager::getInstance();
+    CheckGL();
+    auto t = tm->loadTexture("map.png");
+    sprite->setTextureRegion(t->getTextureRegion());
+    stage->addChild(sprite);
+    scene->setMainStage(stage);
+    Director::getInstance()->run(scene);
 
-    dumpChild(&node);
-    node.sortChildrenOrder__();
-    dumpChild(&node);
+    //sprite->setAnchor(0, 0);
+    sprite->setPosition(S/2.f);
 
-    node.Render();
-
-    //node.removeAll();
-    node.removeChild(n1);
-    node.removeChild(n2);
-
-    //node.setColor(255,255,255,128);
-    node.setColor(Color4(.1, .2, .3, .4));
-    //Vec4 color(255,255,255,128);
-    auto const &color = node.getColor();
-    printf("rgba = %f, %f, %f, %f\n", color.r, color.g, color.b, color.a);
-
-    Mat3 a={{0,1,2,},{3,4,5,},{6,7,8}};
-    Mat4 b(a);
-    for(auto i=0; i<4; i++){
-        for(auto j=0; j<4; j++)
-            printf("%f ", b[j][i]);
-        printf("%s", "\n");
-    }
-
-
-    V224_Quad v2;
-    V324_Quad v3;
-    printf("size v224=%d, v324=%d, float=%d\n",
-            sizeof(v2), sizeof(v3), sizeof(float));
-
-	return 0;
+    //sprite->setRotation(30);
+    //sprite->setPosition(80, 40);
+    printf("size = %f, %f", sprite->getWidth(), sprite->getHeight());
+    auto const &oxy = stage->getViewOrigin();
+    auto const &size = stage->getViewSize();
+    printf("view rect = (%f, %f), %f x %f\n",
+           oxy.x, oxy.y, size.x, size.y);
+    printf("anchor %f, %f  pos %f, %f  scale %f, %f, rotation %f \n",
+           sprite->getAnchorX(), sprite->getAnchorY(),
+           sprite->getX(), sprite->getY(),
+           sprite->getScaleX(), sprite->getScaleY(),
+           sprite->getRotation()
+           );
+    auto winsize = Director::getInstance()->getWinSize();
+    printf("winsize = %f x %f\n", winsize.x, winsize.y);
+    //stage->getCamera().setEye(0, 0);
+    auto eye = stage->getCamera().getEye();
+    printf("eye = %f, %f\n", eye.x, eye.y);
+    return true;
 }
 
 int main()
 {
     auto app = App::getInstance();
-    app->go();
+    Hooks h;
+    h.main = init;
+    app->go(h);
 
     return 0;
 }

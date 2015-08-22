@@ -93,7 +93,7 @@ void ActionManager_vector::resumeActionsForNode(Node *node)
 void ActionManager_vector::moveNode(ActionManager *am, Node *node)
 {
     Assert(am!=nullptr && node!=nullptr, "action-manager or node must not be nil");
-    printf("action size = %d\n", actions_.size());
+    printf("action size = %u\n", (unsigned)actions_.size());
     for(auto it=actions_.begin(); it!=actions_.end();){
 	if(it->markRemove_){
 	    it = actions_.erase(it);

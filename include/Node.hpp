@@ -1,6 +1,6 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
-
+#include "config.hpp"
 #include "types.hpp"
 #include "Ref.hpp"
 #include <ActionManager.hpp>
@@ -21,7 +21,6 @@ public:
     inline const std::string & getName()const{return name_;}
     inline void setName(const std::string &name){name_=name;}
     inline void setName(std::string &&name){name_=std::move(name);}
-    //inline Color4 &getColor(){return color_;}
     inline const Color4 &getColor()const{return color_;}
     inline Color4 getColorCp()const{return color_;}
     inline void setColor(const Color4 &c4){color_=c4;onChangedColor();}
@@ -35,19 +34,20 @@ public:
 
 	inline float getX()const{return pos_.x;}
 	inline float getY()const{return pos_.y;}
-    inline const Vec2 &getPosition()const{return pos_;}
     inline float getWidth()const{return size_.x;}
     inline float getHeight()const{return size_.y;}
-    inline const Vec2 &getSize()const{return size_;}
 	inline float getAnchorX()const{return anchor_.x;}
 	inline float getAnchorY()const{return anchor_.y;}
+    //inline float getSkewX()const{return skew_.x;}
+    //inline float getSkewY()const{return skew_.y;}
+	inline float getScaleX()const{return scale_.x;}
+	inline float getScaleY()const{return scale_.y;}
+
+    inline const Vec2 &getPosition()const{return pos_;}
+    inline const Vec2 &getSize()const{return size_;}
     inline const Vec2 &getAnchor()const{return anchor_;}
-	inline float getScaleX()const{return scaleX_;}
-	inline float getScaleY()const{return scaleY_;}
-    inline Vec2 getScale()const{return Vec2(scaleX_,scaleY_);}
-    inline float getSkewX()const{return skew_.x;}
-    inline float getSkewY()const{return skew_.y;}
-    inline Vec2 getSkew()const{return skew_;}
+    inline const Vec2 &getScale()const{return scale_;}
+    //inline const Vec2 &getSkew()const{return skew_;}
     inline float getRotation()const{return rotation_;}
 	inline int   getZindex()const{return zIndex_;}
 
@@ -63,24 +63,26 @@ public:
 	inline void setAnchorY(float anchorY){anchor_.y=anchorY;dirtyTransform_=true;}
 	inline void setAnchor(float ax, float ay){anchor_.x=ax;anchor_.y=ay;dirtyTransform_=true;}
     inline void setAnchor(const Vec2 &anchor){anchor_=anchor;dirtyTransform_=true;}
-	inline void setScaleX(float scaleX){scaleX_=scaleX;dirtyTransform_=true;}
-	inline void setScaleY(float scaleY){scaleY_=scaleY;dirtyTransform_=true;}
-    inline void setScale(float scale){scaleX_=scaleY_=scale;dirtyTransform_=true;}
-	inline void setScale(float sx, float sy){scaleX_=sx;scaleY_=sy;dirtyTransform_=true;}
-    inline void setScale(const Vec2 &v){scaleX_=v[0];scaleY_=v[1];dirtyTransform_=true;}
-    inline void setSkewX(float skewX){skew_.x=skewX;dirtyTransform_=true;}
-    inline void setSkewY(float skewY){skew_.y=skewY;dirtyTransform_=true;}
-    inline void setSkew(const Vec2 &skew){skew_=skew;dirtyTransform_=true;}
+	inline void setScaleX(float scaleX){scale_.x=scaleX;dirtyTransform_=true;}
+	inline void setScaleY(float scaleY){scale_.y=scaleY;dirtyTransform_=true;}
+    inline void setScale(float scale){scale_.x=scale_.y=scale;dirtyTransform_=true;}
+	inline void setScale(float sx, float sy){scale_.x=sx;scale_.y=sy;dirtyTransform_=true;}
+    inline void setScale(const Vec2 &scale){scale_=scale;dirtyTransform_=true;}
+    //inline void setSkewX(float skewX){skew_.x=skewX;dirtyTransform_=true;}
+    //inline void setSkewY(float skewY){skew_.y=skewY;dirtyTransform_=true;}
+    //inline void setSkew(float skew){skew_.x=skew_.y=skew;dirtyTransform_=true;}
+	//inline void setSkew(float sx, float sy){skew_.x=sx;skew_.y=sy;dirtyTransform_=true;}
+    //inline void setSkew(const Vec2 &skew){skew_=skew;dirtyTransform_=true;}
     inline void setRotation(float rotation){rotation_=rotation;dirtyTransform_=true;}
-	inline void setZindex(int zIndex){
-	    zIndex_=zIndex;
-	    if(parent_)
-		parent_->dirtyChildrenOrder_=true;
-	}
+    inline void setZindex(int zIndex){
+        zIndex_=zIndex;
+        if(parent_)
+            parent_->dirtyChildrenOrder_=true;
+    }
 
-	inline bool isRunning()const{return running_;}
-	inline bool isVisible()const{return visible_;}
-	inline void setVisible(bool visible){visible_=visible;}
+    inline bool isRunning()const{return running_;}
+    inline bool isVisible()const{return visible_;}
+    inline void setVisible(bool visible){visible_=visible;}
     inline bool isActionPaused()const{return pauseAction_;}
     inline void setActionPaused(bool pause){pauseAction_=pause;}
     inline bool isSchedulerPaused()const{return pauseScheduler_;}
@@ -88,24 +90,30 @@ public:
 
     //inline bool operator < (const Node &x)const{return zIndex_<x.getZindex();}
 
-	// tree op
-	typedef std::vector<Ref_ptr<Node>> Vector;
+    // tree op
+    typedef std::vector<Ref_ptr<Node>> Vector;
     void addChild(Node *child);
     void addChild(Node *child, int zIndex);
-	void removeChild(Node *child);
-	void remove(); // remove self from parent
-	void removeAll(); // remove all children
-	inline const Vector &getChildren()const{return children_;}
-	inline int getChildrenSize()const{return children_.size();}
-	inline Node* getParent()const{return parent_;}
+    void removeChild(Node *child);
+    void remove(); // remove self from parent
+    void removeAll(); // remove all children
+    inline const Vector &getChildren()const{return children_;}
+    inline int getChildrenSize()const{return children_.size();}
+    inline Node* getParent()const{return parent_;}
     inline void setDelaySortChildren(bool delay){if(!delay&&dirtyChildrenOrder_)sortChildrenOrder__();}
 
-	virtual void onEnter();
-	virtual void onExit();
-	virtual void beforeEnter();
-	virtual void afterEnter();
-	virtual void beforeExit();
-	virtual void afterExit();
+    virtual Scene *getScene();
+    virtual StageLayer *getStageLayer(){return stage_;}
+
+
+    virtual void onEnter();
+    virtual void onExit();
+    virtual void beforeEnter();
+    virtual void afterEnter();
+    virtual void beforeExit();
+    virtual void afterExit();
+    virtual void onPause();
+    virtual void onResume();
     virtual void toRemove();
     // Actions
     void runAction(const Ref_ptr<Action> &action);
@@ -121,60 +129,60 @@ public:
     inline void schedule(const Scheduler::bFunc &func, const std::string &key, float delay, float interval, unsigned repeat)
     {sched_->scheduleNode(this, key, func, delay, interval, repeat);}
     void unSchedule(const std::string &key){sched_->unscheduleNodeOne(this, key);}
-    virtual bool update(float dt){return true;}
+    virtual bool update(float dt){UNUSED(dt);return true;}
 
     // Render related, need parent's color ?
     virtual void DrawSelf(Renderer *_);
-    void visit(Renderer *scene, const Mat3 &parentTransform, bool parentTransformUpdated);
-	inline Shader *getShader()const {return shader_;}
-	inline void setShader(Shader *shader){shader_=shader;}
+    void visit(Renderer *renderer, const Mat3 &parentTransform, bool parentTransformUpdated);
+    inline Shader *getShader()const {return shader_;}
+    inline void setShader(Shader *shader){shader_=shader;}
     // matrix
     virtual void onChangedTransformation(){}
     virtual void onChangedColor(){}
-	inline const Mat3 &getWorldTransform()const{return worldTransform_;}
-	inline const Mat3 &getNodeToParentTransform()const{return nodeToParentTransform_;}
-//protected:
+    inline const Mat3 &getWorldTransform()const{return worldTransform_;}
+    inline const Mat3 &getNodeToParentTransform()const{return nodeToParentTransform_;}
+    //protected:
     virtual void onRemove__();
-	void updateNodeToParentTransform__();
-void updateNodeToParentTransform0__();
+    void updateNodeToParentTransform__();
+    void updateNodeToParentTransform0__();
     void updateWorldTransform__(const Mat3 &parentTransform);
     void sortChildrenOrder__(); // MUST BE stable sort
-    
-// members
+
+    // members
     std::string name_;
     Color4 color_;
     Vec2 pos_;
     Vec2 size_;
     Vec2 anchor_;
-	float scaleX_;
-	float scaleY_;
-	Vec2 skew_;
-	float rotation_; // z-axis rotation in degree
-	int zIndex_;
+    Vec2 scale_;
+    //Vec2 skew_;
+    float rotation_; // z-axis rotation in degree
+    int zIndex_;
 
-	//
-	ActionManager *am_;
-	Scheduler *sched_;
-	// tree related, weak reference
-	Node *parent_;
-    StageLayer *stage;
-	Vector children_;
+    //
+    ActionManager *am_;
+    Scheduler *sched_;
+    // tree related, weak reference
+    Node *parent_;
+    StageLayer *stage_;
+    Vector children_;
 
-	Shader *shader_;
+    Shader *shader_;
 
     friend class Scene;
 
 
-//	bool running_;
-//	bool visible_;
-//    bool pauseAction_;
-//    bool pauseScheduler_;
-//
-//    bool dirtyChildrenOrder_;
-//	bool dirtyTransform_; //*/ if true, need to recalculate matrix
+    //	bool running_;
+    //	bool visible_;
+    //    bool pauseAction_;
+    //    bool pauseScheduler_;
+    //
+    //    bool dirtyChildrenOrder_;
+    //	bool dirtyTransform_; //*/ if true, need to recalculate matrix
     Mat3 worldTransform_;
-	Mat3 nodeToParentTransform_; // node to parent transform matrix
-    unsigned running_:1;
+    Mat3 nodeToParentTransform_; // node to parent transform matrix
+    unsigned running_:1; // if add to a running tree
+    unsigned paused_ :1; // 
     unsigned visible_:1;
     unsigned pauseAction_:1;
     unsigned pauseScheduler_:1;

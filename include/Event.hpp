@@ -1,6 +1,7 @@
 #ifndef EVENT_HPP
 #define EVENT_HPP
-
+#include "types.hpp"
+#include "input/input.hpp"
 class Node;
 class Event
 {
@@ -10,19 +11,22 @@ class Event
             INVALID,
             TOUCH,
             MOUSE,
-            KEYBORAD,
+            KEYBOARD,
         };
         Event();
         virtual ~Event(){}
-        virtual Type getType()const=0;
-        inline Node *getNode()const{return node_;}
-        inline bool isStopped()const{return stopped_;}
-        inline void setStop(){stopped_=true;}
-    protected:
-        inline void setNode(Node *node){node_=node;}
-    private:
-        Node *node_;
-        bool stopped_;
+        virtual Type getType()const{return Type::INVALID;}
+        //no key modifiers by default
+        virtual KeyMods getKeyMods()const{return (KeyMods)0;}
+
+//        inline Node *getNode()const{return node_;}
+//        inline bool isStopped()const{return stopped_;}
+//        inline void setStop(){stopped_=true;}
+//    protected:
+//        inline void setNode(Node *node){node_=node;}
+//    private:
+//        Node *node_;
+//        bool stopped_;
 };
 class Touch final
 {
@@ -66,38 +70,49 @@ class EventTouch : public Event
         TouchCode code_;
         std::vector<Touch*> touches_;
 };
+enum class MouseButton
+{
+    LEFT,
+    RIGHT,
+    MIDDLE,
+};
+enum class MouseCode
+{
+    PRESS,
+    MOVE,
+    RELEASE,
+    SCROLL,
+};
 class EventMouse : public Event
 {
     public:
-        enum class MouseCode
-        {
-            MOUSE_LEFT_DOWN,
-            MOUSE_LEFT_MOVE,
-            MOUSE_LEFT_UP,
-            MOUSE_RIGHT_DOWN,
-            MOUSE_RIGHT_MOVE,
-            MOUSE_RIGHT_UP,
-            MOUSE_SCROLL,
-        };
-        EventMouse(MouseCode code);
-        MouseCode getMouseCode()const{return mouseCode_;}
-        Event::Type getType()const final{return Event::Type::MOUSE;}
-        inline int getMouseButton(){return button_;}
-        inline const Vec2 &getCursorPosition()const{return cursor_;}
-        inline float getCursorX()const{return cursor_.x;}
-        inline float getCursorY()const{return cursor_.y;}
+        inline EventMouse(MouseCode code):Event(),mouseCode_(code),mods_(KeyMods::MOD_NIL){}
+        inline MouseCode getMouseCode()const{return mouseCode_;}
+        Event::Type getType()const override final{return Event::Type::MOUSE;}
+        KeyMods getKeyMods()const override final{return mods_;}
+        inline MouseButton getMouseButton()const{return button_;}
+        // valid for left or right button
+        inline const Vec2 &getCurrentPosition()const{return currentPos_;}
+        inline float getCursorX()const{return currentPos_.x;}
+        inline float getCursorY()const{return currentPos_.y;}
+        inline const Vec2 &getStartPos()const{return pressPos_;}
+        //only valid for middle button
         inline const Vec2 &getScroll()const{return scroll_;}
         inline float getScrollX()const{return scroll_.x;}
         inline float getScrollY()const{return scroll_.y;}
     protected:
-        inline void setMouseButton(int button){button_=button;}
-        inline void setCursorPosition(float x, float y){cursor_.x=x;cursor_.y=y;}
+        inline void setMouseButton(MouseButton button){button_=button;}
+        inline void setKeyMods(KeyMods mods){mods_=mods;}
+        inline void setStartPos(const Vec2 &pos){pressPos_=pos;}
+        inline void setCursorPosition(float x, float y){currentPos_.x=x;currentPos_.y=y;}
         inline void setScroll(float scollX, float scrollY){scroll_.x=scollX;scroll_.y=scrollY;}
 
-    private:
+    //private:
+        MouseButton button_;
         MouseCode mouseCode_;
-        int button_;
-        Vec2 cursor_;
+        KeyMods mods_;
+        Vec2 pressPos_;
+        Vec2 currentPos_;
         Vec2 scroll_;
 };
 
@@ -106,14 +121,17 @@ enum class KeyAction
     KEY_PRESS,
     KEY_RELEASE,
 };
-#include "GLView_linux.hpp"
-class EventKeyboard final : public Event
+class EventKeyboard : public Event
 {
     public:
-        Event::Type getType()const{return Event::Type::KEYBORAD;}
-        KeyCode code;
-        KeyMods mods; // Ctrl | Alt | Shift | Super
-        KeyAction action;
+        Event::Type getType()const{return Event::Type::KEYBOARD;}
+        KeyMods getKeyMods()const override final{return mods_;}
+        inline KeyCode getKeyCode()const{return code_;}
+        inline KeyAction getKeyAction()const{return action_;}
+    protected:
+        KeyCode code_;
+        KeyMods mods_; // Ctrl | Alt | Shift | Super
+        KeyAction action_;
 };
 
 #endif // EVENT_HPP

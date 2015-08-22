@@ -1,8 +1,8 @@
 #include "Event.hpp"
 
 Event::Event()
-    : node_(nullptr)
-    , stopped_(false)
+//    : node_(nullptr)
+//    , stopped_(false)
 {
 }
 

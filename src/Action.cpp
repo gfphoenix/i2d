@@ -67,7 +67,7 @@ void Sequence::update()
     auto &a = actions_[idx_];
     a->update();
     if(a->isDone()){
-        if(++idx_<actions_.size())
+        if(++idx_<(int)actions_.size())
             actions_[idx_]->reset();
     }
 }

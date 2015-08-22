@@ -1,41 +1,34 @@
 #include <App.hpp>
 #include <debug>
 #include <Director.hpp>
+#include <Main.hpp>
 #include <mm.hpp>
 
 class AppLinux : public App
 {
     public:
-        App::Platform getPlatform()const override;
-        void go()override;
+        inline AppLinux(){};
+        App::Platform getPlatform()const override{return App::Platform::Linux;}
+        void go(const Hooks &hook)override;
 };
-App::Platform AppLinux::getPlatform()const
-{
-    return App::Platform::Linux;
-}
-void AppLinux::go()
-{
+void AppLinux::go(const Hooks &hooks)
+{   // init director here & set the default glview
+    // users can change the default glview in main
     auto d = Director::getInstance();
-    auto view = d->getGLView();
-    if(view == nullptr){
-        view = GLView::create();
-        d->setGLView(view);
-    }
-    auto ok = this->main();
+    auto view = GLView::create(320, 480);
+    d->setGLView(view);
+    this->hooks = hooks;
+    auto ok = hooks.main();
     if(!ok)
         return;
-    //realy Go
+    // blocking here !!!
     d->mainLoop();
-
-    {
-        delete d;
-    }
 }
-App *App::app_ = nullptr;
-Ref_ptr<App> App::getInstance()
+Ref_ptr<App> App::app_ = nullptr;
+App *App::getInstance()
 {
     if(app_ == nullptr){
         app_ = MM<AppLinux>::New();
     }
-    return Ref_ptr<App>(app_);
+    return app_.get();
 }

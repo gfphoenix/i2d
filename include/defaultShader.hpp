@@ -1,13 +1,12 @@
 #ifndef _DEFAULT_SHADER_HPP
 #define _DEFAULT_SHADER_HPP
-#include <macros>
 #include <Ref.hpp>
 #include <TextureManager.hpp>
 #include <Shader.hpp>
 #include <vector>
 #include <VertexUVColor.hpp>
 
-
+class Renderer;
 class dShader : public Shader
 {
     private:
@@ -24,10 +23,10 @@ class dShader : public Shader
         std::vector<V2F_T2F_C4F> buffer_;
     public:
 	void init2();
-	virtual void LimitBatchNumber(int min, int max)override;
-	virtual void Use(Scene *scene)override;
-	virtual void Render(Scene *scene, Node *node)override;
-	virtual void Flush(Scene *scene)override;
+//	virtual void LimitBatchNumber(int min, int max)override;
+    virtual void Use(Renderer *renderer)override;
+    virtual void Render(Renderer *renderer, Node *node)override;
+    virtual void Flush(Renderer *renderer)override;
 	dShader();
 	void init(GLuint program);
         virtual ~dShader();

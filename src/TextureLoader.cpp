@@ -1,4 +1,4 @@
-#include <config>
+#include <config.hpp>
 #include <TextureLoader.hpp>
 #include <functional>
 
