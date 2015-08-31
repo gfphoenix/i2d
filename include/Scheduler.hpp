@@ -1,23 +1,19 @@
 #ifndef _SCHEDULE_HPP_
 #define _SCHEDULE_HPP_
 #include "Ref.hpp"
-//#include "Node.hpp"
 #include <functional>
 
 class Node;
 class Scheduler : public Ref
 {
     public:
-    //typedef std::function<void(float)> func;
-    typedef std::function<bool(float)> bFunc;
-    virtual const std::string getInfo()const{return std::string("Scheduler-0");}
-	void scheduleUpdate(Node *node);
+        typedef std::function<bool(float)> bFunc;
+        virtual const std::string getInfo()const{return std::string("Scheduler-0");}
+        void scheduleUpdate(Node *node);
         inline void unscheduleUpdate(Node *node){unschedulePtrOne(static_cast<void*>(node), "");}
-    inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn)
+        inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn)
         {schedulePtr(static_cast<void *>(node), key, fn);}
-    //inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn)
-	//{schedulePtr(static_cast<void*>(node), key, fn);}
-    inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn, float delay, float interval, unsigned repeat)
+        inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn, float delay, float interval, unsigned long repeat)
         {schedulePtr(static_cast<void *>(node), key, fn, delay, interval, repeat);}
         // key as data
 
@@ -40,8 +36,8 @@ class Scheduler : public Ref
 
 
         virtual void update(float deltaTime)=0;
-    virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn)=0;
-    virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn, float delay, float interval, unsigned repeat)=0;
+        virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn)=0;
+        virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn, float delay, float interval, unsigned repeat)=0;
         virtual void unschedulePtrAll(void *ptr)=0;
         virtual void unschedulePtrOne(void *ptr, const std::string &key)=0;
         virtual void pausePtrAll(void *ptr)=0;
@@ -50,7 +46,7 @@ class Scheduler : public Ref
         virtual void resumePtrOne(void *ptr, const std::string &key)=0;
         virtual void pause()=0;
         virtual void resume()=0;
-	virtual void moveNode(Scheduler *to, Node *node)=0;
+        virtual void moveNode(Scheduler *to, Node *node)=0;
         static void test();
         static Ref_ptr<Scheduler> create();
     protected:

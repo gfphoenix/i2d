@@ -123,6 +123,7 @@ Ref_ptr<TextureRegion2D> TextureAtlas::get(const string &name)const
 }
 AtlasConfig TextureAtlas::parseAtlasConfig(const string &atlasName)
 {
+    do{}while(!sizeof(atlasName));
     return AtlasConfig();
 }
 TextureAtlas *TextureAtlas::create(const AtlasConfig &config)

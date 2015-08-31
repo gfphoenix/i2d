@@ -23,7 +23,7 @@ public:
         int width_;
         int height_;
         Vec2 cursor_; // mouse pos
-        Vec2 cursor1_; // cursor pos when mouse button pressed
+        Vec2 cursorStart_; // cursor pos when mouse button pressed
         bool pressedLeft; // to track the move action
 
         static GLViewLinux *createGLViewLinux(int w, int h, const char *title);
@@ -43,6 +43,21 @@ public:
         friend class MM<GLViewLinux>;
         friend void winsize_callback(GLFWwindow *win, int width, int height);
     public:
+        Vec2 getCursor(){
+            double x,y;
+            ::glfwGetCursorPos(win_, &x, &y);
+            return Vec2((float)x, height_-(float)y);
+        }
+
+        const Vec2 &updateStartCursor()
+        {
+            double xx, yy;
+            ::glfwGetCursorPos(win_, &xx, &yy);
+            cursorStart_.x = xx;
+            cursorStart_.y = height_-yy;
+            return cursorStart_;
+        }
+
         inline virtual void onResize(int w, int h)override{setSize(w,h);}
         inline void setSize(int w, int h){width_=w;height_=h;}
         inline void setWin(GLFWwindow *win){win_ = win;}
@@ -149,8 +164,10 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
     case GLFW_MOUSE_BUTTON_LEFT:
         bnt = MouseButton::LEFT;
         view->pressedLeft = code==MouseCode::PRESS;
-        if(view->pressedLeft)
-            view->cursor1_ = Vec2(x,y);
+        if(view->pressedLeft){
+            //view->cursorStart_ = Vec2(x,y);
+            view->updateStartCursor();
+        }
         break;
     case GLFW_MOUSE_BUTTON_RIGHT:
         bnt = MouseButton::RIGHT;
@@ -166,12 +183,21 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
     EventMouse_linux e(code);
     e.setMouseButton(bnt);
     e.setKeyMods((KeyMods)toKeyMods(mods));
-    e.setCursorPosition((float)x, view->height_-(float)y);
-    if(action==GLFW_PRESS)
-        e.setStartPos(e.getCurrentPosition());
-    else
-        e.setStartPos(view->cursor1_);
-
+    e.setCursorPos((float)x, (float)y);
+    e.setStartPos(view->cursorStart_);
+    if(action==GLFW_PRESS){
+        e.setCursorPos(view->cursorStart_.x, view->cursorStart_.y);
+    }
+    {
+        if(action==GLFW_PRESS)
+            printf("mouse press at (%f, %f) cur(%f, %f)\n",
+                   e.getStartPos().x, e.getStartPos().y,
+                   e.getCursorPos().x, e.getCursorPos().y);
+        else if(action==GLFW_RELEASE)
+            printf("mouse release at (%f, %f) cur(%f, %f)\n",
+                   e.getStartPos().x, e.getStartPos().y,
+                   e.getCursorPos().x, e.getCursorPos().y);
+    }
     Director::getInstance()->handleEvent(&e);
 }
 
@@ -182,7 +208,6 @@ void GLViewLinux::scroll_callback(GLFWwindow *, double xoffset, double yoffset)
     e.setScroll((float)xoffset, (float)yoffset);
     Director::getInstance()->handleEvent(&e);
 }
-
 
 GLView * GLView::create(int w, int h)
 {
@@ -197,12 +222,21 @@ void GLViewLinux::cursor_position_callback(GLFWwindow* win, double x, double y)
 {
     auto view = static_cast<GLViewLinux*>(::glfwGetWindowUserPointer(win));
     view->cursor_.x = x;
-    view->cursor_.y = y;
+    view->cursor_.y = view->height_-y;
     if(!view->pressedLeft)
         return ;
     EventMouse_linux e(MouseCode::MOVE);
     e.setMouseButton(MouseButton::LEFT);
-    e.setStartPos(view->cursor1_);
-    e.setCursorPosition((float)x, view->height_-(float)y);
+    e.setStartPos(view->cursorStart_);
+    {
+    //e.setCursorPos(view->cursor_.x, view->cursor_.y);
+        auto t = view->getCursor();
+        e.setCursorPos(t.x, t.y);
+    }
+    {
+        printf("mouse move at (%f, %f) cur(%f, %f)\n",
+               e.getStartPos().x, e.getStartPos().y,
+               e.getCursorPos().x, e.getCursorPos().y);
+    }
     Director::getInstance()->handleEvent(&e);
 }

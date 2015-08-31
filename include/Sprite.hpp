@@ -35,7 +35,7 @@ class Sprite : public BaseSprite
         Sprite();
         virtual const Texture2D *getTexture()override{return region_ ? region_->getTexture2D().get():nullptr;}
         virtual size_t getObjectNumber()override{return 1;}
-	virtual const V224_Quad &getDataAt(int _)override{return quad_;}
+    virtual const V224_Quad &getDataAt(int )override{return quad_;}
         //inline void init(const Ref_ptr<TextureRegion2D> &region){setTextureRegion(region);}
         virtual void DrawSelf(Renderer *scene)override;
         virtual void onChangedColor()override;

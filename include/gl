@@ -6,7 +6,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #endif
-
+#include "debug"
 static inline void checkGLerror(const char *file, int line)
 {
     auto e = glGetError();

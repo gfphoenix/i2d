@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <gl>
 #include "Shader.hpp"
 
 // make it to use an abstract file apis

@@ -46,6 +46,7 @@ Scene *Node::getScene()
 
 void Node::onPause(){}
 void Node::onResume(){}
+//set stage or scene from parent, etc.
 void Node::beforeEnter()
 {
     stage_ = parent_->stage_;
@@ -58,6 +59,10 @@ void Node::afterEnter()
         am_->moveNode(am, this);
         am_ = am;
     }
+    {
+        if(hasListeners() && getStageLayer())
+            getStageLayer()->setNeedOrderListeners();
+    }
     auto sch = getScene()->getScheduler();
     if(sch != sched_){
         // move scheduled task
@@ -67,9 +72,12 @@ void Node::afterEnter()
 }
 void Node::beforeExit()
 {
+    if(hasListeners() && getStageLayer())
+        getStageLayer()->setNeedOrderListeners();
 }
 void Node::afterExit()
 {
+    stage_=nullptr;
 }
 
 void Node::onEnter(){
@@ -87,8 +95,8 @@ void Node::onExit(){
     for(const auto& child : children_){
         child->onExit();
     }
-    running_ = false;
     afterExit();
+    running_ = false;
 }
 void Node::toRemove()
 {
@@ -102,11 +110,12 @@ void Node::onRemove__()
 void Node::updateWorldTransform__(const Mat3 &parentTransform)
 {
     worldTransform_ = parentTransform * nodeToParentTransform_;
+    dirty_world_1_ = true;
     onChangedTransformation();
 }
 // Mat3
-void Node::updateNodeToParentTransform0__()
-{
+//void Node::updateNodeToParentTransform0__()
+//{
 //    Mat3 &id = nodeToParentTransform_;
 //    double Cx=1, Sx=0, Cy=1, Sy=0;
 //
@@ -133,7 +142,7 @@ void Node::updateNodeToParentTransform0__()
 //    id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
 //    id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
 //    dirtyTransform_ = false;
-}
+//}
 void Node::updateNodeToParentTransform__()
 {
     Mat3 &id = nodeToParentTransform_;
@@ -143,8 +152,10 @@ void Node::updateNodeToParentTransform__()
         C = cos(M_PI * rotation_/180);
         S = sin(M_PI * rotation_/180);
     }
-    double ax = size_.x * anchor_.x;
-    double ay = size_.y * anchor_.y;
+    auto const &size = getSize();
+    auto const &anchor = getAnchor();
+    double ax = size.x * anchor.x;
+    double ay = size.y * anchor.y;
     double ta = C * scale_.x;
     double tb = S * scale_.x;
     double tc =-S * scale_.y;
@@ -158,6 +169,8 @@ void Node::updateNodeToParentTransform__()
     id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
     id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
     dirtyTransform_ = false;
+    // reverse matrix should update, world bit will be set follow
+    dirty_local_1_ = true;
 }
 void Node::sortChildrenOrder__()
 {
@@ -182,23 +195,25 @@ void Node::addChild(Node *child)
     children_.push_back(Ref_ptr<Node>(child));
     child->parent_ = this;
     dirtyChildrenOrder_ = true;
+
     if(running_)
         child->onEnter();
 }
 //  Remove child
+
 void Node::removeAll()
 {
-    int n=children_.size();
+    int n=(int)children_.size();
     while(n-->0){
         auto child = children_.back();
         if(child->running_)
             child->onExit();
         child->parent_ = nullptr;
-        child->stage_ = nullptr;
         children_.pop_back();
     }
     dirtyChildrenOrder_ = false;
 }
+
 void Node::removeChild(Node *child)
 {
     Assert(child != nullptr, "Node::removeChild #! child must not be nil");
@@ -209,7 +224,6 @@ void Node::removeChild(Node *child)
         child->onExit();
     toRemove();
     child->parent_ = nullptr;
-    child->stage_ = nullptr;
     children_.erase(x);
     dirtyChildrenOrder_ = true;
 }
@@ -219,7 +233,6 @@ void Node::remove()
     if(parent != nullptr){
         parent->removeChild(this);
     }
-    // else remove stage-layer
 }
 // render && visit
 void Node::DrawSelf(Renderer *)
@@ -229,6 +242,8 @@ void Node::visit(Renderer *renderer, const Mat3 &parentTransform, bool parentTra
 {
     if(!visible_)
         return ;
+    if(dirtyChildrenOrder_)
+        sortChildrenOrder__();
     bool dirty = dirtyTransform_ || parentTransformUpdated;
     if(dirtyTransform_)
         updateNodeToParentTransform__();
@@ -277,4 +292,29 @@ void Node::clearActions()
     Assert(stage_ != nullptr, "Scene is nullptr");
     am_->removeActionsForNode(this);
 }
-
+void Node::addEventListener(EventListener *l)
+{
+    auto ok = listeners_.addListener(l);
+    Assert(ok, "Eventlistener register failed");
+    l->setRegistered();
+    l->setNode(this);
+    auto stage = getStageLayer();
+    if(stage){
+        stage->setNeedOrderListeners();
+    }
+}
+void Node::removeEventListener(EventListener *l)
+{
+    auto ok = listeners_.removeListener(l);
+    //false means failed, not owned by this node
+    if(!ok)
+        return;
+    auto stage = getStageLayer();
+    if(stage){
+        stage->setNeedOrderListeners();
+    }
+}
+void Node::clearEventListeners()
+{
+    listeners_.clear();
+}

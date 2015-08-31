@@ -5,43 +5,56 @@
 class Node;
 struct ListenerVector
 {
-    std::vector<Ref_ptr<EventListener>> v_;
-    bool enable_;
-    bool hasZombies_;
+    std::vector<Ref_ptr<EventListener>> *v_;
     public:
-    ListenerVector()
-        : enable_(true)
-          , hasZombies_(false)
-    {}
-    inline bool hasZombies()const{return hasZombies_;}
-    // enable or disable all listeners
-    inline bool isEnabled()const{return enable_;}
-    inline void enable(){enable_=true;}
-    inline void disable(){enable_=false;}
-    inline void setEnabled(bool enable){enable_=enable;}
-    std::vector<Ref_ptr<EventListener>> &getEventListeners(){return v_;}
-    inline void addListener(Ref_ptr<EventListener> &&l)
-    {
-        v_.push_back(std::move(l));
+    ListenerVector():v_(nullptr){}
+    ~ListenerVector(){
+        clear();
     }
-    inline void removeListener(Ref_ptr<EventListener> &&l)
+
+    std::vector<Ref_ptr<EventListener>> &getEventListeners(){return *v_;}
+    // return true if need to update listener dispatcher
+    inline bool addListener(EventListener *l)
     {
-        hasZombies_ = true;
-        l->markRemove();
+        if(l->isRegistered())
+            return false;
+        if(v_==nullptr)
+            v_ = new std::vector<Ref_ptr<EventListener>>;
+        v_->push_back(l);
+        return true;
     }
-    inline void cleanZombies()
+    bool removeListener(EventListener *l)
     {
-        int i,j;
-        int n = (int)v_.size();
-        auto data = v_.data();
-        i=j=0;
-        for(; j<n; j++)
-            if(!data[j]->shouldRemove()){
-                if(i!=j)
-                    data[i] = std::move(data[j]);
-                i++;
+        bool ok = false;
+        if(v_==nullptr)
+            goto out ;
+        for(auto x=v_->begin(), end=v_->end(); x!=end; ++x)
+            if((*x)==l){
+                (*x)->setDead();
+                v_->erase(x);
+                ok = true;
+                break;
             }
-        v_.resize(i);
+        if(v_->size()==0){
+            delete v_;
+            v_=nullptr;
+        }
+    out:
+        return ok;
+    }
+    void clear()
+    {
+        if(!v_)
+            return;
+        int i=(int)v_->size();
+        auto &v = *v_;
+        while(i-->0){
+            auto l = v.at(i).get();
+            l->setDead();
+            l->setNode(nullptr);
+        }
+        delete v_;
+        v_=nullptr;
     }
     friend class Node;
 };

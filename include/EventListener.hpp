@@ -1,11 +1,13 @@
 #ifndef LISTENER_HPP
 #define LISTENER_HPP
-#include "Node.hpp"
 #include <Ref.hpp>
 #include <functional>
 
 class Event;
+class EventKeyboard;
+class EventMouse;
 class EventDispatcher;
+class Node;
 class EventListener : public Ref
 {
     public:
@@ -20,10 +22,12 @@ class EventListener : public Ref
         enum class Type
         {
             UNKNOWN = -1,
-            TOUCH_ONE = 0,
-            TOUCH_ALL,
-            KEYBOARD,
+            KEYBOARD = 0,
+            CUSTOM,
             MOUSE,
+            TOUCH_ONE,
+            TOUCH_ALL,
+
             Type_Number, // number of all event-listeners, exclude this guy
         };
 
@@ -32,31 +36,49 @@ class EventListener : public Ref
         inline bool isRegistered()const{return state_!=State::ZERO;}
         inline void setRegistered(){state_=State::RUNNING;}
         inline bool isRunning()const{return state_==State::RUNNING;}
+        // running or paused
         inline bool isAlive()const{return state_==State::RUNNING||state_==State::PAUSED;}
-        inline bool isZombie()const{return state_==State::ZOMBIE;}
         virtual Type getType()const=0;
+        inline int getFixedPriority()const{return priority_;}
+        inline Node *getNode()const{return node_;}
         virtual void reset();
+
+        // for first action, return true means "I will handle it"
+        // and set the dispatch state of EventDispatcher if matched
+        virtual bool handle(Event *)=0;
     protected:
         EventListener();
         virtual ~EventListener(){}
-        void init(const std::function<void(Event*)> &fn);
-        inline int getFixedPriority()const{return priority_;}
         inline void setFixedPriority(int prio){priority_=prio;}
-        inline Node *getNode()const{return node_;}
         inline void setNode(Node *node){node_=node;}
-        inline Node *getSceneNodePriority()const{return node_;}
-        inline void setSceneNodePriority(Node *node){node_=node;}
-        inline void markRemove(){state_=State::ZOMBIE;}
+        inline void setDead(){state_=State::ZOMBIE;}//when node removed
         friend class EventDispatcher;
+        friend class ListenerVector;
+        friend class Node;
 
-
-        std::function<void(Event*)> fn_;
-        int priority_;
         Node *node_;
+        int priority_;
         State state_;
-        //bool paused_;
-        //bool registered_;
 };
 
+class EventMouseListener : public EventListener
+{
+public:
+    bool handle(Event *)override;
+    virtual Type getType()const final{return EventListener::Type::MOUSE;}
+    std::function<bool(EventMouse *)> onPress;
+    std::function<void(EventMouse *)> onMove;
+    std::function<void(EventMouse *)> onRelease;
+    std::function<void(EventMouse *)> onScroll;
+};
+
+class EventKeyboardListener : public EventListener
+{
+public:
+    bool handle(Event *)override;
+    virtual Type getType()const final{return EventListener::Type::KEYBOARD;}
+    std::function<bool(EventKeyboard *)> onPress;
+    std::function<void(EventKeyboard *)> onRelease;
+};
 
 #endif // LISTENER_HPP

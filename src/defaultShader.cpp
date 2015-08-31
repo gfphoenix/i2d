@@ -62,7 +62,7 @@ dShader::~dShader()
 //    buffer_.reserve(min);
 //}
 
-void dShader::Use(Renderer *renderer)
+void dShader::Use(Renderer *)
 {
     use();
 }
@@ -81,11 +81,11 @@ void dShader::Render(Renderer *renderer, Node*node)
             Flush(renderer);
         lastTexture_ = tex;
     }
-    if(buffer_.size()>=max_){
+    if((int)buffer_.size()>=max_){
         Flush(renderer);
     }
 
-    auto n = bs->getObjectNumber();
+    auto n = (int)bs->getObjectNumber();
     {
         for(auto i=0; i<n; i++){
             auto &data = bs->getDataAt(i);

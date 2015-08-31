@@ -1,32 +1,36 @@
 #ifndef EVENT_HPP
 #define EVENT_HPP
+#include "gl"
 #include "types.hpp"
 #include "input/input.hpp"
+#include "EventListener.hpp"
 class Node;
+class EventListener;
 class Event
 {
     public:
         enum class Type
         {
-            INVALID,
-            TOUCH,
+            INVALID = -1,
+            KEYBOARD = 0,
+            CUSTOM,
             MOUSE,
-            KEYBOARD,
+            TOUCH,
         };
         Event();
         virtual ~Event(){}
+        virtual bool matchListenerType(EventListener::Type lType)const=0;
         virtual Type getType()const{return Type::INVALID;}
         //no key modifiers by default
         virtual KeyMods getKeyMods()const{return (KeyMods)0;}
 
-//        inline Node *getNode()const{return node_;}
-//        inline bool isStopped()const{return stopped_;}
-//        inline void setStop(){stopped_=true;}
-//    protected:
-//        inline void setNode(Node *node){node_=node;}
-//    private:
-//        Node *node_;
-//        bool stopped_;
+        //inline Node *getNode()const{return node_;}
+        inline bool isStopped()const{return stopped_;}
+        inline void setStop(){stopped_=true;}
+    protected:
+        //inline void setNode(Node *node){node_=node;}
+        //Node *node_;
+        bool stopped_;
 };
 class Touch final
 {
@@ -63,6 +67,8 @@ class EventTouch : public Event
         };
         EventTouch();
         inline TouchCode getEventCode()const{return code_;}
+        virtual bool matchListenerType(EventListener::Type lType)const override final
+        {return lType==EventListener::Type::TOUCH_ALL || lType==EventListener::Type::TOUCH_ONE;}
         inline const std::vector<Touch*> &getTouches()const{return touches_;}
     protected:
         inline void setTouchCode(TouchCode code){code_=code;}
@@ -72,9 +78,10 @@ class EventTouch : public Event
 };
 enum class MouseButton
 {
-    LEFT,
+    LEFT=0,
     RIGHT,
     MIDDLE,
+    NR, // number
 };
 enum class MouseCode
 {
@@ -83,19 +90,24 @@ enum class MouseCode
     RELEASE,
     SCROLL,
 };
+class StageLayer;
 class EventMouse : public Event
 {
     public:
         inline EventMouse(MouseCode code):Event(),mouseCode_(code),mods_(KeyMods::MOD_NIL){}
         inline MouseCode getMouseCode()const{return mouseCode_;}
         Event::Type getType()const override final{return Event::Type::MOUSE;}
+        virtual bool matchListenerType(EventListener::Type lType)const override final
+        {return lType==EventListener::Type::MOUSE;}
         KeyMods getKeyMods()const override final{return mods_;}
         inline MouseButton getMouseButton()const{return button_;}
         // valid for left or right button
-        inline const Vec2 &getCurrentPosition()const{return currentPos_;}
-        inline float getCursorX()const{return currentPos_.x;}
-        inline float getCursorY()const{return currentPos_.y;}
-        inline const Vec2 &getStartPos()const{return pressPos_;}
+        // screen pos start from bottom left of window
+        inline const Vec2 &getCursorPos()const{return pos1_;}
+        inline float getCursorX()const{return pos1_.x;}
+        inline float getCursorY()const{return pos1_.y;}
+        inline const Vec2 &getCursorWorld()const{return world1_;}
+        inline const Vec2 &getStartPos()const{return pos0_;}
         //only valid for middle button
         inline const Vec2 &getScroll()const{return scroll_;}
         inline float getScrollX()const{return scroll_.x;}
@@ -103,17 +115,20 @@ class EventMouse : public Event
     protected:
         inline void setMouseButton(MouseButton button){button_=button;}
         inline void setKeyMods(KeyMods mods){mods_=mods;}
-        inline void setStartPos(const Vec2 &pos){pressPos_=pos;}
-        inline void setCursorPosition(float x, float y){currentPos_.x=x;currentPos_.y=y;}
+        inline void setStartPos(const Vec2 &pos){pos0_=pos;}
+        inline void setCursorPos(float x, float y){pos1_.x=x;pos1_.y=y;}
+        inline void setCursorWorld(float x, float y){world1_.x=x;world1_.y=y;}
         inline void setScroll(float scollX, float scrollY){scroll_.x=scollX;scroll_.y=scrollY;}
 
-    //private:
         MouseButton button_;
         MouseCode mouseCode_;
         KeyMods mods_;
-        Vec2 pressPos_;
-        Vec2 currentPos_;
+        Vec2 pos0_;
+        Vec2 pos1_, world1_;
         Vec2 scroll_;
+
+        friend class EventMouseListener;
+        friend class StageLayer;
 };
 
 enum class KeyAction
@@ -125,6 +140,9 @@ class EventKeyboard : public Event
 {
     public:
         Event::Type getType()const{return Event::Type::KEYBOARD;}
+        virtual bool matchListenerType(EventListener::Type lType)const override final
+        {return lType==EventListener::Type::KEYBOARD;}
+
         KeyMods getKeyMods()const override final{return mods_;}
         inline KeyCode getKeyCode()const{return code_;}
         inline KeyAction getKeyAction()const{return action_;}

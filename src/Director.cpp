@@ -1,6 +1,5 @@
 #include <Director.hpp>
 #include <Event.hpp>
-#include <EventDispatcher.hpp>
 #include <Ref.hpp>
 #include <Scene.hpp>
 #include <mm.hpp>
@@ -10,7 +9,6 @@
 Ref_ptr<Director> Director::director_=nullptr;
 Director::Director()
 {
-    //eventDispatcher_ = MM<EventDispatcher>::New();
 }
 Director *Director::getInstance()
 {
@@ -45,6 +43,8 @@ void Director::run(Scene *scene)
     Assert(scene != nullptr, "Scene must not be nullptr");
     sceneStack_.push_back(scene);
     ssp_ = nullptr;
+    sop_ = SceneStackOp::NOOP;
+    scene->onEnter();
 }
 void Director::pushScene(Scene *scene)
 {
@@ -112,7 +112,7 @@ void Director::mainLoop()
     Debug("Enter mainLoop\n");
     running_ = true;
     while(running_ && !view_->shouldClose()){
-        usleep(15200);
+        usleep(15000);
         switchScene();
         updateDeltaTime();
         view_->pollEvents();
@@ -125,60 +125,4 @@ void Director::onDraw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if(sceneStack_.size()>0)
         sceneStack_.back()->Render();
-}
-static void handleMouseEvent(EventMouse *e)
-{
-    auto button = e->getMouseButton();
-    auto code = e->getMouseCode();
-    auto pos = e->getCurrentPosition();
-    char msg[128];
-    int i=0;
-    switch(button){
-    case MouseButton::LEFT :
-        i += sprintf(&msg[i], "left button : ");
-        break;
-    case MouseButton::RIGHT :
-        i += sprintf(&msg[i], "right button : ");
-        break;
-    case MouseButton::MIDDLE :
-        i += sprintf(&msg[i], "middle button : ");
-        break;
-    }
-    switch(code){
-    case MouseCode::PRESS :
-        i += sprintf(&msg[i], "pressed at ");
-        break;
-    case MouseCode::RELEASE :
-        i += sprintf(&msg[i], "released at ");
-        break;
-    case MouseCode::MOVE :
-        i += sprintf(&msg[i], "moved at ");
-        break;
-    case MouseCode::SCROLL :
-        i += sprintf(&msg[i], "scrolled %d, %d",
-                     (int)e->getScrollX(), (int)e->getScrollY());
-        break;
-    }
-    sprintf(&msg[i], "(%2f, %2f)\n", pos.x, pos.y);
-    printf(msg);
-}
-void handleKeyboard(EventKeyboard *e)
-{
-    if(e->getKeyAction()==KeyAction::KEY_PRESS){
-        printf("pressed %x, mods = %x\n", (int)e->getKeyCode(), (int)e->getKeyMods());
-    }else{
-        printf("released %x, mods = %x\n", (int)e->getKeyCode(), (int)e->getKeyMods());
-    }
-}
-
-void Director::handleEvent(Event *e)
-{
-    switch(e->getType()){
-    case Event::Type::MOUSE:
-        handleMouseEvent(static_cast<EventMouse*>(e));
-        break;
-    case Event::Type::KEYBOARD:
-        handleKeyboard(static_cast<EventKeyboard*>(e));
-        break;
-    }
 }

@@ -13,16 +13,25 @@ class Director : public Ref
     protected:
         static Ref_ptr<Director> director_;
     public:
-		static Director *getInstance();
+        static Director *getInstance();
         virtual ~Director(){director_=nullptr;}
         virtual void run(Scene *scene);
         virtual void pushScene(Scene *scene);
         virtual void popScene();
         virtual void replaceScene(Scene *scene);
         virtual void switchScene();
-        
+
+        inline Scene *getRunningScene()const
+        {
+            return sceneStack_.back().get();
+        }
+
         virtual void end();
-        virtual void handleEvent(Event *e);
+        inline void handleEvent(Event *e)
+        {
+            if(sceneStack_.size()>0)
+                getRunningScene()->handleSceneEvent(e);
+        }
         virtual void mainLoop();
         virtual void onDraw();
         inline const Ref_ptr<GLView> &getGLView()const{return view_;}
@@ -39,7 +48,6 @@ class Director : public Ref
         void updateDeltaTime();
         IdleContainer idle_;
         Ref_ptr<GLView> view_;
-       // Ref_ptr<EventDispatcher> eventDispatcher_;
         float deltaTime_;
         float duration_=0;
         struct timeval lastTime_;

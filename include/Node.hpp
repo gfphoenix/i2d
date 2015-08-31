@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "Ref.hpp"
 #include <ActionManager.hpp>
+#include "ListenerVector.hpp"
 #include <Scheduler.hpp>
 #include <vector>
 class Renderer;
@@ -44,8 +45,8 @@ public:
 	inline float getScaleY()const{return scale_.y;}
 
     inline const Vec2 &getPosition()const{return pos_;}
-    inline const Vec2 &getSize()const{return size_;}
-    inline const Vec2 &getAnchor()const{return anchor_;}
+    virtual const Vec2 &getSize()const{return size_;}
+    virtual const Vec2 &getAnchor()const{return anchor_;}
     inline const Vec2 &getScale()const{return scale_;}
     //inline const Vec2 &getSkew()const{return skew_;}
     inline float getRotation()const{return rotation_;}
@@ -100,6 +101,7 @@ public:
     inline const Vector &getChildren()const{return children_;}
     inline int getChildrenSize()const{return children_.size();}
     inline Node* getParent()const{return parent_;}
+    inline void sortChildrenOrder(){if(dirtyChildrenOrder_)sortChildrenOrder__();}
     inline void setDelaySortChildren(bool delay){if(!delay&&dirtyChildrenOrder_)sortChildrenOrder__();}
 
     virtual Scene *getScene();
@@ -121,6 +123,14 @@ public:
     void pauseAction(Action *);
     void resumeAction(Action *);
     void clearActions();
+    // Listeners
+    inline int getListenerNumber()const
+    {return listeners_.v_?(int)listeners_.v_->size():0;}
+    inline bool hasListeners()const{return getListenerNumber()>0;}
+    void addEventListener(EventListener *l);
+    void removeEventListener(EventListener *l);
+    void clearEventListeners();
+
     // scheduler
     inline void scheduleUpdate(){sched_->scheduleUpdate(this);}
     inline void unScheduleUpdate(){sched_->unscheduleUpdate(this);}
@@ -144,9 +154,12 @@ public:
     //protected:
     virtual void onRemove__();
     void updateNodeToParentTransform__();
-    void updateNodeToParentTransform0__();
     void updateWorldTransform__(const Mat3 &parentTransform);
     void sortChildrenOrder__(); // MUST BE stable sort
+    inline const std::vector<Ref_ptr<EventListener>> &getEventListeners()
+    {
+        return listeners_.getEventListeners();
+    }
 
     // members
     std::string name_;
@@ -161,6 +174,7 @@ public:
 
     //
     ActionManager *am_;
+    ListenerVector listeners_;
     Scheduler *sched_;
     // tree related, weak reference
     Node *parent_;
@@ -170,17 +184,12 @@ public:
     Shader *shader_;
 
     friend class Scene;
+    friend class StageLayer;
 
-
-    //	bool running_;
-    //	bool visible_;
-    //    bool pauseAction_;
-    //    bool pauseScheduler_;
-    //
-    //    bool dirtyChildrenOrder_;
-    //	bool dirtyTransform_; //*/ if true, need to recalculate matrix
     Mat3 worldTransform_;
     Mat3 nodeToParentTransform_; // node to parent transform matrix
+    Mat3 worldTransform_1_;
+    Mat3 nodeToParentTransform_1_;
     unsigned running_:1; // if add to a running tree
     unsigned paused_ :1; // 
     unsigned visible_:1;
@@ -188,6 +197,9 @@ public:
     unsigned pauseScheduler_:1;
     unsigned dirtyChildrenOrder_:1;
     unsigned dirtyTransform_:1;
+    unsigned dirty_world_1_:1;
+    unsigned dirty_local_1_:1;
+
 };
 
 //} /* namespace fphoenix */
