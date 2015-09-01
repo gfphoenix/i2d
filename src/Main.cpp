@@ -15,20 +15,14 @@
 Vec2 S = Vec2(480, 800);
 static bool init()
 {
-    CheckGL();
     auto scene = MM<Scene>::New(S);
-    CheckGL();
-
     auto sprite = MM<Sprite>::New();
-    CheckGL();
     auto tm = TextureManager::getInstance();
-    CheckGL();
     auto t = tm->loadTexture("map.png");
     sprite->setTextureRegion(t->getTextureRegion());
     scene->addChild(sprite);
     Director::getInstance()->run(scene);
 
-    //sprite->setAnchor(0, 0);
     sprite->setPosition(S/2.f);
     {
         auto ml = MM<EventMouseListener>::New();
