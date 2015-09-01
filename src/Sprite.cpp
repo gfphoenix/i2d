@@ -42,15 +42,16 @@ void Sprite::fillQuad()
 // or Mat4x3
 void Sprite::fillPosition()
 {
-	Mat3 const &cwt = getWorldTransform();
+	auto const &cwt = getWorldTransform();
+    auto const &size = getSize();
 	Vec3 result;
 	result = cwt * Vec3(0,0,1);
     ::memcpy(&quad_.bl.v, &result[0], sizeof(quad_.bl.v));
-    result = cwt * Vec3(size_.x, 0, 1);
+    result = cwt * Vec3(size.x, 0, 1);
     ::memcpy(&quad_.br.v, &result[0], sizeof(quad_.br.v));
-    result = cwt * Vec3(0, size_.y, 1);
+    result = cwt * Vec3(0, size.y, 1);
     ::memcpy(&quad_.tl.v, &result[0], sizeof(quad_.tl.v));
-    result = cwt * Vec3(size_,1);
+    result = cwt * Vec3(size,1);
     ::memcpy(&quad_.tr.v, &result[0], sizeof(quad_.tr.v));
    // Debug("Position=(%.2f, %.2f)--(%.2f, %.2f) -- (%.2f, %.2f) - (%.2f, %.2f)\n",
    //       quad_.bl.v.x, quad_.bl.v.y,

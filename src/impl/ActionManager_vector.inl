@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 
-//namespace {
 struct ActionNode 
 {
     Ref_ptr<Action> action_;
@@ -28,11 +27,11 @@ class ActionManager_vector : public ActionManager
 typedef ActionManager_vector ActionManager_impl;
 void ActionManager_vector::update(float delta)
 {
-    //for(auto it=actions_.begin(), end=actions_.end(); it!=end;){
+    //printf("am ; size = %d\n", (int)actions_.size());
     for(auto it=actions_.begin(); it!=actions_.end();){
         auto a = it->action_.get();
         Assert(a != nullptr, "Action is nullptr");
-	if(it->markRemove_ || (!it->paused_ && !a->getNode()->isActionPaused() && run__(a, delta))){
+        if(it->markRemove_ || (!it->paused_ && !a->getNode()->isActionPaused() && run__(a, delta))){
             it =actions_.erase(it);
         }else{
             it++;
@@ -49,14 +48,16 @@ void ActionManager_vector::removeAction(Action *a)
 {
     Assert(a!=nullptr, "Action is nullptr when removed");
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-        if(it->action_ == a)
+        if(it->action_ == a){
             it->markRemove_ = true;
+            break;
+        }
     }
 }
 void ActionManager_vector::removeActionsForNode(Node *node)
 {
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-	if(it->action_->getNode() == node)
+        if(it->action_->getNode() == node)
             it->markRemove_ = true;
     }
 }
@@ -64,14 +65,16 @@ void ActionManager_vector::pauseAction(Action *a)
 {
     Assert(a != nullptr, "ActionManager_vector::pauseAction : action is nullptr");
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-        if(it->action_ == a)
+        if(it->action_ == a){
             it->paused_ = true;
+            break;
+        }
     }
 }
 void ActionManager_vector::pauseActionsForNode(Node *node)
 {
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-	if(it->action_->getNode() == node)
+        if(it->action_->getNode() == node)
             it->paused_ = true;
     }
 }
@@ -79,14 +82,16 @@ void ActionManager_vector::resumeAction(Action *a)
 {
     Assert(a != nullptr, "ActionManager_vector::pauseAction : action is nullptr");
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-        if(it->action_ == a)
+        if(it->action_ == a){
             it->paused_ = false;
+            break;
+        }
     }
 }
 void ActionManager_vector::resumeActionsForNode(Node *node)
 {
     for(auto it=actions_.begin(),end=actions_.end(); it!=end; it++){
-	if(it->action_->getNode() == node)
+        if(it->action_->getNode() == node)
             it->paused_ = false;
     }
 }
@@ -95,17 +100,17 @@ void ActionManager_vector::moveNode(ActionManager *am, Node *node)
     Assert(am!=nullptr && node!=nullptr, "action-manager or node must not be nil");
     printf("action size = %u\n", (unsigned)actions_.size());
     for(auto it=actions_.begin(); it!=actions_.end();){
-	if(it->markRemove_){
-	    it = actions_.erase(it);
-	    continue;
-	}
-        auto a = it->action_.get();
-	if(a->getNode()==node){
-            am->addAction(node, a, it->paused_);
-	    it = actions_.erase(it);
-	    continue;
+        if(it->markRemove_){
+            it = actions_.erase(it);
+            continue;
         }
-	it++;
+        auto a = it->action_.get();
+        if(a->getNode()==node){
+            am->addAction(node, a, it->paused_);
+            it = actions_.erase(it);
+            continue;
+        }
+        it++;
     }
 }
 

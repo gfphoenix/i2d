@@ -132,13 +132,13 @@ public:
     void clearEventListeners();
 
     // scheduler
-    inline void scheduleUpdate(){sched_->scheduleUpdate(this);}
-    inline void unScheduleUpdate(){sched_->unscheduleUpdate(this);}
+    //inline void scheduleUpdate(){sched_->scheduleUpdate(this);}
+    //inline void unScheduleUpdate(){sched_->unscheduleUpdate(this);}
     inline void schedule(const Scheduler::bFunc &func, const std::string &key)
-    {sched_->scheduleNode(this, key, func);}
+    {sched_->schedule(this, key, func);}
     inline void schedule(const Scheduler::bFunc &func, const std::string &key, float delay, float interval, unsigned repeat)
-    {sched_->scheduleNode(this, key, func, delay, interval, repeat);}
-    void unSchedule(const std::string &key){sched_->unscheduleNodeOne(this, key);}
+    {sched_->schedule(this, key, func, delay, interval, repeat);}
+    void unSchedule(const std::string &key){sched_->unscheduleOne(this, key);}
     virtual bool update(float dt){UNUSED(dt);return true;}
 
     // Render related, need parent's color ?

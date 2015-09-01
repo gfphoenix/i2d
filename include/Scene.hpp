@@ -15,13 +15,12 @@ class StageLayer;
 class Scene : public StageLayer
 {
     protected:
-    //Ref_ptr<StageLayer> main_;
-    std::vector<Ref_ptr<StageLayer>> *stages;
-    Ref_ptr<Scheduler> sch_;
-    Ref_ptr<ActionManager> actionManager_;
-    Renderer renderer_;
-	friend class Shader;
-    friend class Director;
+        std::vector<Ref_ptr<StageLayer>> *stages;
+        Ref_ptr<Scheduler> sch_;
+        Ref_ptr<ActionManager> actionManager_;
+        Renderer renderer_;
+        friend class Shader;
+        friend class Director;
 
     public:
         Scene(const Vec2 &designSize, ResolutionPolicy policy=ResolutionPolicy::KEEP);
@@ -38,15 +37,12 @@ class Scene : public StageLayer
 
         inline Scheduler *getScheduler()const{return sch_.get();}
         inline ActionManager *getActionManager()const{return actionManager_.get();}
-        // contains update, poll-event and render
-        //void mainLoop();
         virtual void Render();
-        //virtual void pollEvent();
         virtual bool update(float dt)override;
 
         virtual void onEnter();
         virtual void onExit();
-    virtual void handleSceneEvent(Event *e);
+        virtual void handleSceneEvent(Event *e);
     protected:
         //
         inline void foreachStageLayer(void (*fn)(StageLayer *stage, void *userData), void *userData)

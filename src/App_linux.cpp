@@ -15,7 +15,7 @@ void AppLinux::go(const Hooks &hooks)
 {   // init director here & set the default glview
     // users can change the default glview in main
     auto d = Director::getInstance();
-    auto view = GLView::create(480, 800);
+    auto view = GLView::create(360, 600);
     d->setGLView(view);
     this->hooks = hooks;
     auto ok = hooks.main();

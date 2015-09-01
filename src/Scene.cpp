@@ -14,7 +14,11 @@ Scene::Scene(const Vec2 &designSize, ResolutionPolicy policy):
     stage_ = this;
     sch_ = Scheduler::create();
     actionManager_ = ActionManager::create();
-    sch_->schedulePtr(actionManager_.get(), "ActionManager", [this](float dt){actionManager_->update(dt);return false;});
+    sch_->schedule(actionManager_.get(), "ActionManager",
+            [this](float dt)->bool{
+            actionManager_->update(dt);
+            return false;
+            });
 }
 Scene::~Scene()
 {
@@ -59,9 +63,9 @@ void Scene::updateStagePrio()
 {
     if(stages!=nullptr)
         std::stable_sort(stages->begin(), stages->end(),
-        [](const Ref_ptr<StageLayer> &a, const Ref_ptr<StageLayer> &b){
-            return a->getZindex()<=b->getZindex();
-        });
+                [](const Ref_ptr<StageLayer> &a, const Ref_ptr<StageLayer> &b){
+                return a->getZindex()<=b->getZindex();
+                });
 }
 void Scene::Render()
 {
@@ -99,8 +103,8 @@ void Scene::updateListeners()
 }
 bool Scene::update(float dt)
 {
-(void)dt;
-return true;
+    (void)dt;
+    return true;
 }
 
 void Scene::handleSceneEvent(Event *e)
@@ -126,17 +130,17 @@ void Scene::handleSceneEvent(Event *e)
         if(stage->handleEvent(e))
             goto out;
     }
-    out:
+out:
     //printf("HandleScene event ...\n");
     return;
 }
 void Scene::onEnter()
 {
-	foreachStageLayer([this](StageLayer *stage){
-			stage->scene_ = this;
+    foreachStageLayer([this](StageLayer *stage){
+            stage->scene_ = this;
             stage->StageLayer::onEnter();
             printf("scene::onenter...\n");
-			});
+            });
 }
 void Scene::onExit()
 {

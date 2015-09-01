@@ -60,7 +60,7 @@ void Node::afterEnter()
         am_ = am;
     }
     {
-        if(hasListeners() && getStageLayer())
+        if(hasListeners())
             getStageLayer()->setNeedOrderListeners();
     }
     auto sch = getScene()->getScheduler();
@@ -101,7 +101,7 @@ void Node::onExit(){
 void Node::toRemove()
 {
     am_->removeActionsForNode(this);
-    sched_->unscheduleNodeAll(this);
+    sched_->unscheduleAll(this);
 }
 
 void Node::onRemove__()

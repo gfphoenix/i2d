@@ -31,32 +31,6 @@ static bool init()
     //sprite->setAnchor(0, 0);
     sprite->setPosition(S/2.f);
     {
-        auto l = MM<EventKeyboardListener>::New();
-        l->onPress = [sprite](EventKeyboard *e){
-            printf("key press code = %x\n", (int)e->getKeyCode());
-            switch(e->getKeyCode()){
-            case KeyCode::KEY_W:
-                sprite->setY(sprite->getY()+1);
-                break;
-            case KeyCode::KEY_A:
-                sprite->setX(sprite->getX()-1);
-                break;
-            case KeyCode::KEY_S:
-                sprite->setY(sprite->getY()-1);
-                break;
-            case KeyCode::KEY_D:
-                sprite->setX(sprite->getX()+1);
-                break;
-            default:
-                break;
-            }
-
-            return true;
-        };
-        l->onRelease = [](EventKeyboard *e){
-            printf("key released code = %x\n", (int)e->getKeyCode());
-        };
-        sprite->addEventListener(l);
         auto ml = MM<EventMouseListener>::New();
         ml->onPress = [](EventMouse *){
             return true;
@@ -68,16 +42,80 @@ static bool init()
             auto dxy = pos - start;
             sprite->setPosition(ip+dxy);
         };
+        ml->onScroll = [scene](EventMouse *e){
+            auto dy = e->getScrollY();
+            auto zoom = scene->getCamera().getZoomFactor();
+            zoom += dy *.1f;
+            printf("dy = %f, zoom=%f\n", (float)dy, zoom);
+            scene->getCamera().setZoomFactor(zoom);
+        };
         sprite->addEventListener(ml);
-        auto rot = RotateBy::create(4, 180);
+        float duration=0;
+        sprite->schedule([duration](float dt)mutable{
+                bool out = duration > 10;
+                printf("dt = %f  T=%f\n", dt, duration);
+                duration += dt;
+                return out;
+                },"foobar", 3, 1, 17);
+        auto life = MM<Sprite>::New();
+        life->setTextureRegion(tm->loadTexture("life.png")->getTextureRegion());
+        scene->addChild(life);
+        life->setPosition(300, 300);
+        auto rot = RotateBy::create(3, 180);
         auto rep = Repeat::create(rot, -1);
-        if(sprite->am_!=nullptr)
-            Director::getInstance()->getIdleContainer().getIdleActionManager()->addAction(sprite, rep);
-        else
-            sprite->am_->addAction(sprite, rep);
+        life->runAction(rep);
+        life->schedule([life](float dt){
+                printf("rot=%f\n", life->getRotation());
+                return false;
+                }, "printRot", 0, .5f, -1);
+        auto l = MM<EventKeyboardListener>::New();
+        l->onPress = [life](EventKeyboard *e){
+            printf("key press code = %x\n", (int)e->getKeyCode());
+            switch(e->getKeyCode()){
+            case KeyCode::KEY_W:
+                life->setY(life->getY()+1);
+                break;
+            case KeyCode::KEY_A:
+                life->setX(life->getX()-1);
+                break;
+            case KeyCode::KEY_S:
+                life->setY(life->getY()-1);
+                break;
+            case KeyCode::KEY_D:
+                life->setX(life->getX()+1);
+                break;
+            default:
+                break;
+            }
+
+            return true;
+        };
+        l->onRelease = [](EventKeyboard *e){
+            printf("key released code = %x\n", (int)e->getKeyCode());
+        };
+        life->addEventListener(l);
+
+        auto ml2 = MM<EventMouseListener>::New();
+        ml2->onPress = [](EventMouse *e){
+            auto const &p = e->getStartPos();
+            return p.x<=120 && p.y<=200;
+        };
+        auto ip2 = life->getPosition();
+        ml2->onMove = [ip2,life](EventMouse *e){
+            auto const &start = e->getStartPos();
+            auto const &pos = e->getCursorPos();
+            auto dxy = pos - start;
+            life->setPosition(ip2+dxy*.5f);
+        };
+        ml2->onScroll = [scene](EventMouse *e){
+            auto dy = e->getScrollY();
+            auto zoom = scene->getCamera().getZoomFactor();
+            zoom += dy *.1f;
+            printf("dy = %f, zoom=%f\n", (float)dy, zoom);
+            scene->getCamera().setZoomFactor(zoom);
+        };
+        life->addEventListener(ml2);
     }
-    //sprite->setRotation(30);
-    //sprite->setPosition(80, 40);
     printf("size = %f, %f", sprite->getWidth(), sprite->getHeight());
     auto const &oxy = scene->getViewOrigin();
     auto const &size = scene->getViewSize();

@@ -206,6 +206,7 @@ void GLViewLinux::scroll_callback(GLFWwindow *, double xoffset, double yoffset)
     EventMouse_linux e(MouseCode::SCROLL);
     e.setMouseButton(MouseButton::MIDDLE);
     e.setScroll((float)xoffset, (float)yoffset);
+    printf("scroll event dxy=(%f,%f)\n", e.getScrollX(), e.getScrollY());
     Director::getInstance()->handleEvent(&e);
 }
 

@@ -19,7 +19,6 @@ class ActionManager : public Ref
         virtual void update(float delta)=0;
         static Ref_ptr<ActionManager> create();
     protected:
-//        inline void setNode__(Action *a, Node *n)const{a->node_=n;}
         inline bool run__(Action *a, float dt)const{a->step(dt);a->update();return a->isDone();}
         virtual ~ActionManager(){}
 };

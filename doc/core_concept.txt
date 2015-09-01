@@ -6,15 +6,26 @@ Director
 GLView
 1. 创建GL环境
 2. 创建事件消息
-3. 跟踪屏幕尺寸
+3. 跟踪屏幕尺寸,但并不包含屏幕适配策略
 
-Scene
-1. 接收从Director发来的事件消息，并分发给StageLayer
-2. 创建并维护EventDispatcher， ActionManager， Scheduler
+App: App_linux
+1. 获取平台信息
+2. 。。。
 
 StageLayer
 1. 拥有相机，处理不同分辨率策略的Layer
 2. 负责将屏幕坐标相关事件进行坐标转换，然后分发给子节点
+3. 负责分发输入事件，并将屏幕坐标转化为游戏使用的世界坐标
+
+Scene
+0. Scene本身也是一个StageLayer，作为默认的StageLayer
+1. 接收从Director发来的事件消息，并分发给StageLayer
+2. 创建并维护ActionManager， Scheduler
+
+ActionManager & Scheduler
+将Node的action结构分离出来，进行集中管理的结构。
+节点为加入Scene中时，ActionManager使用全局的结构，加入Scene时，从全局结构移动到Scene的ActionManager
+Scheduler 设计与ActionManager一样
 
 TextureManager
 1. 加载单个纹理对象，并维护
@@ -40,15 +51,15 @@ Node 渲染树节点
     Mat : nodeToParentTransform, worldTransform, worldTransform_1
 
 2. 钩子
-    onEnter()
-    onExit()
-    beforeEnter()
-    afterEnter()
-    beforeExit()
-    afterExit()
+    onEnter()：处理beforeEnter和afterEnter及递归逻辑
+    onExit()：处理beforeExit和afterExit及递归逻辑
+    beforeEnter() //负责构建渲染树相关结构。设置stage信息, 父节点先运行，子节点后运行
+    afterEnter() //在进入之后，进行的节点初始化处理，此时保证parent和stage是有效的。子节点先运行，父节点后运行
+    beforeExit() //在Exit之前，进行销毁处理，beforeExit处理时，保证parent和stage信息是有效的
+    afterExit() //负责重置节点信息，如，stage=nil
     onPause()
     onResume()
 
 3. 渲染
-    visit()
-    DrawSelf()
+    visit() // 负责处理渲染先后顺序及矩阵的更新，不对本节点做具体渲染
+    DrawSelf() // 渲染node的具体逻辑

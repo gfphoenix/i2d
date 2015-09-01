@@ -115,6 +115,7 @@ void Director::mainLoop()
         usleep(15000);
         switchScene();
         updateDeltaTime();
+        getRunningScene()->getScheduler()->update(getDeltaTime());
         view_->pollEvents();
         onDraw();
         view_->swapBuffer();

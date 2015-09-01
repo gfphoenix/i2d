@@ -3,58 +3,51 @@
 #include "Ref.hpp"
 #include <functional>
 
-class Node;
+class Ref;
 class Scheduler : public Ref
 {
     public:
         typedef std::function<bool(float)> bFunc;
         virtual const std::string getInfo()const{return std::string("Scheduler-0");}
-        void scheduleUpdate(Node *node);
-        inline void unscheduleUpdate(Node *node){unschedulePtrOne(static_cast<void*>(node), "");}
-        inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn)
-        {schedulePtr(static_cast<void *>(node), key, fn);}
-        inline void scheduleNode(Node *node, const std::string &key, const bFunc &fn, float delay, float interval, unsigned long repeat)
-        {schedulePtr(static_cast<void *>(node), key, fn, delay, interval, repeat);}
+        inline void schedule(Ref *node, const std::string &key, const bFunc &fn){schedule__(node, key, fn,false);}
+        inline void schedule(Ref *node, const std::string &key, const bFunc &fn, float delay, float interval, unsigned long repeat)
+        {schedule__(node, key, fn, delay, interval, repeat, false);}
         // key as data
 
-        inline void unscheduleNodeAll(Node *node){unschedulePtrAll(static_cast<void *>(node));}
-        inline void unscheduleNodeOne(Node *node, const std::string &key){unschedulePtrOne(static_cast<void *>(node), key);}
+        inline void unscheduleAll(Ref *node){unscheduleAll__(node);}
+        inline void unscheduleOne(Ref *node, const std::string &key){unscheduleOne__(node, key);}
 
-        inline void pauseNodeAll(Node *node){pausePtrAll(static_cast<void *>(node));}
-        inline void pauseNodeOne(Node *node, const std::string &key){pausePtrOne(static_cast<void *>(node), key);}
+        inline void pauseAll(Ref *node){pauseAll__(node);}
+        inline void pauseOne(Ref *node, const std::string &key){pauseOne__(node, key);}
 
-        inline void resumeNodeAll(Node *node){resumePtrAll(static_cast<void *>(node));}
-        inline void resumeNodeOne(Node *node, const std::string &key){resumePtrOne(static_cast<void *>(node), key);}
+        inline void resumeAll(Ref *node){resumeAll__(node);}
+        inline void resumeOne(Ref *node, const std::string &key){resumeOne__(node, key);}
 
-        inline bool isScheduled(Node *node, const std::string &key)const{return isScheduled(static_cast<void *>(node), key);}
-        inline bool isScheduled(Node *node)const{return _isScheduled(static_cast<void*>(node),"");}
-        inline bool isScheduled(void *ptr, const std::string &key)const{return key.size()>0 && _isScheduled(ptr,key);}
-        inline bool isScheduled(void *ptr){return _isScheduled(ptr,"");}
-        inline bool isPaused(Node *node)const{return _isPaused(static_cast<void*>(node),"");}
-        inline bool isPaused(Node *node, const std::string &key)const{return isPaused(static_cast<void*>(node),key);}
-        inline bool isPaused(void *ptr, const std::string &key)const{return key.size()>0 && _isPaused(ptr,key);}
-
+        inline bool isScheduled(Ref *node, const std::string &key="")const{return isScheduled__(node, key);}
+        inline bool isPaused(Ref *node, const std::string &key="")const{return isPaused__(node, key);}
 
         virtual void update(float deltaTime)=0;
-        virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn)=0;
-        virtual void schedulePtr(void *ptr, const std::string &key, const bFunc &fn, float delay, float interval, unsigned repeat)=0;
-        virtual void unschedulePtrAll(void *ptr)=0;
-        virtual void unschedulePtrOne(void *ptr, const std::string &key)=0;
-        virtual void pausePtrAll(void *ptr)=0;
-        virtual void pausePtrOne(void *ptr, const std::string &key)=0;
-        virtual void resumePtrAll(void *ptr)=0;
-        virtual void resumePtrOne(void *ptr, const std::string &key)=0;
-        virtual void pause()=0;
-        virtual void resume()=0;
-        virtual void moveNode(Scheduler *to, Node *node)=0;
-        static void test();
+        inline void moveNode(Scheduler *to, Ref *node){moveNode__(to,node);}
+
+        virtual ~Scheduler(){}
         static Ref_ptr<Scheduler> create();
     protected:
-        virtual ~Scheduler(){}
+        virtual void schedule__(Ref *ptr, const std::string &key, const bFunc &fn, bool paused)=0;
+        virtual void schedule__(Ref *ptr, const std::string &key, const bFunc &fn, float delay, float interval, unsigned repeat, bool paused)=0;
+        virtual void unscheduleAll__(Ref *node)=0;
+        virtual void unscheduleOne__(Ref *node, const std::string &key)=0;
+        virtual void pauseAll__(Ref *node)=0;
+        virtual void pauseOne__(Ref *node, const std::string &key)=0;
+        virtual void resumeAll__(Ref *node)=0;
+        virtual void resumeOne__(Ref *node, const std::string &key)=0;
         // active or inactive but not removed
-        virtual bool _isScheduled(void *ptr, const std::string &key)const=0;
+        virtual bool isScheduled__(Ref *node, const std::string &key)const=0;
         // inactive but not removed
-        virtual bool _isPaused(void *ptr, const std::string &key)const=0;
+        virtual bool isPaused__(Ref *node, const std::string &key)const=0;
+        virtual void pause()=0;
+        virtual void resume()=0;
+        virtual void moveNode__(Scheduler *to, Ref *node)=0;
+        static void test();
 };
 
 #endif

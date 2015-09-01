@@ -8,8 +8,8 @@ Ref_ptr<Scheduler> Scheduler::create()
 {
     return Ref_ptr<Scheduler>(MM<Scheduler_impl>::New());
 }
-void Scheduler::scheduleUpdate(Node *node)
-{schedulePtr(static_cast<void*>(node), "", [node](float dt){return node->update(dt);});}
+//void Scheduler::scheduleUpdate(Node *node)
+//{schedulePtr(static_cast<void*>(node), "", [node](float dt){return node->update(dt);});}
 void Scheduler::test()
 {
 }
