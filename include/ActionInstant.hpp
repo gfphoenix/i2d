@@ -7,7 +7,7 @@
 class Show : public ActionInstant
 {
     public:
-        static Show * create(){return MM<Show>::New();}
+        inline static Show * create(){return MM<Show>::New();}
     protected:
         Show * clone() const override;
         ActionInstant * reverse() const override;
@@ -16,7 +16,7 @@ class Show : public ActionInstant
 class Hide : public ActionInstant
 {
     public:
-        static Hide * create(){return MM<Hide>::New();}
+        inline static Hide * create(){return MM<Hide>::New();}
     protected:
         Hide * clone() const override;
         ActionInstant * reverse() const override;
@@ -25,10 +25,10 @@ class Hide : public ActionInstant
 class ToggleVisibility : public ActionInstant
 {
     public:
-        static ToggleVisibility * create(){return MM<ToggleVisibility>::New();}
+        inline static ToggleVisibility * create(){return MM<ToggleVisibility>::New();}
     protected:
-        ToggleVisibility * clone() const override{return MM<ToggleVisibility>::New();}
-        ToggleVisibility * reverse() const override{return MM<ToggleVisibility>::New();}
+        ToggleVisibility * clone() const override{return create();}
+        ToggleVisibility * reverse() const override{return create();}
         virtual void update()override{node_->setVisible(!node_->isVisible());}
 };
 #endif // ACTIONINSTANT_HPP

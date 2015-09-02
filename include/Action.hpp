@@ -18,7 +18,7 @@ class Action : public Ref
         //virtual void stop()=0;
         virtual void reset()=0;
         virtual bool isDone()const=0;
-        Node *node_; // can be nullptr, which means action like a global function to run
+        Node *node_; 
 
         Action():node_(nullptr){}
         virtual ~Action(){}
@@ -31,6 +31,7 @@ class FiniteTimeAction : public Action
     public:
         virtual FiniteTimeAction * clone()const override=0;
         virtual FiniteTimeAction * reverse()const override=0;
+    //protected:
         virtual void update()override=0;
         virtual void reset()override=0;
         virtual void step(float)override{}
@@ -42,15 +43,15 @@ class ActionInterval : public FiniteTimeAction
 {
     public:
         inline float getDuration()const{return duration_;}
-        float getPercent()const{return std::min(elapsed_/duration_, 1.0f);}
-        //protected:
+        inline float getPercent()const{return std::min(elapsed_/duration_, 1.0f);}
+    //protected:
         virtual void update(float percent)=0; // percent maybe greater than 1 or less than 0
         virtual void update()override{update(getPercent());}
         virtual void step(float dt)override;
         virtual bool isDone()const override{return elapsed_>=duration_;}
         virtual void reset()override{elapsed_=-1.f;}
         inline void init(float duration){
-            Assert(duration>0, "ActionInterval duration<0");
+            Assert(duration>0, "ActionInterval duration<=0");
             duration_=duration;
             elapsed_=-1.f;
         }
@@ -105,7 +106,7 @@ class Sequence : public ActionSet
     protected:
         virtual ~Sequence(){}
         virtual void setNode(Node *node)override;
-        virtual void step(float dt)override{actions_[idx_]->step(dt);}
+        virtual void step(float dt)override;
         virtual bool isDone()const override{return idx_==(int)actions_.size();}
         virtual void update()override;
         virtual void reset()override;
@@ -128,8 +129,8 @@ class Parallel : public ActionSet
         {
             (void)n;
         }
-
-        char *data; // 0~size()-1 : -1 => no exe; 0 => running or done. [size()] left running actions
+        std::vector<bool> done_;
+        //char *data; // 0~size()-1 : -1 => no exe; 0 => running or done. [size()] left running actions
 };
 class TimeScale : public FiniteTimeAction
 {
@@ -154,15 +155,15 @@ class Repeat : public FiniteTimeAction
         Repeat * clone() const override;
         Repeat * reverse() const override;
     protected:
-        void init(unsigned times){counter_=times;cc_=0;}
+        void init(unsigned long times){counter_=times;cc_=0;}
         virtual bool isDone()const override{return cc_==counter_;}
         virtual void setNode(Node *node)override{Action::setNode(node);inner_->setNode(node);}
         virtual void update()override;
         virtual void step(float dt)override{inner_->step(dt);}
         virtual void reset()override{cc_=0;inner_->reset();}
     protected:
-        unsigned cc_;
-        unsigned counter_;
+        unsigned long cc_;
+        unsigned long counter_;
         Ref_ptr<FiniteTimeAction> inner_;
 
 };

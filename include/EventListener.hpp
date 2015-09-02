@@ -39,6 +39,7 @@ class EventListener : public Ref
         // running or paused
         inline bool isAlive()const{return state_==State::RUNNING||state_==State::PAUSED;}
         virtual Type getType()const=0;
+        virtual bool isValid()const=0;
         inline int getFixedPriority()const{return priority_;}
         inline Node *getNode()const{return node_;}
         virtual void reset();
@@ -66,10 +67,11 @@ class EventMouseListener : public EventListener
 public:
     bool handle(Event *)override;
     virtual Type getType()const final{return EventListener::Type::MOUSE;}
+    virtual bool isValid()const final{return state_==State::ZERO && (onPress!=nullptr || onScroll!=nullptr);}
     std::function<bool(EventMouse *)> onPress;
     std::function<void(EventMouse *)> onMove;
     std::function<void(EventMouse *)> onRelease;
-    std::function<void(EventMouse *)> onScroll;
+    std::function<bool(EventMouse *)> onScroll;
 };
 
 class EventKeyboardListener : public EventListener
@@ -77,6 +79,7 @@ class EventKeyboardListener : public EventListener
 public:
     bool handle(Event *)override;
     virtual Type getType()const final{return EventListener::Type::KEYBOARD;}
+    virtual bool isValid()const final{return state_==State::ZERO && onPress!=nullptr;}
     std::function<bool(EventKeyboard *)> onPress;
     std::function<void(EventKeyboard *)> onRelease;
 };

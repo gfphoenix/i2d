@@ -47,13 +47,6 @@ static bool init()
 //            printf("oldPos(%f,%f), w(%f, %f), dxy(%f, %f)\n", oldPos.x, oldPos.y, w.x, w.y, dxy.x, dxy.y);
             sprite->setPosition(oldPos+dxy);
         };
-        ml->onScroll = [scene](EventMouse *e){
-            auto dy = e->getScrollY();
-            auto zoom = scene->getCamera().getZoomFactor();
-            zoom += dy *.1f;
-            printf("dy = %f, zoom=%f\n", (float)dy, zoom);
-            scene->getCamera().setZoomFactor(zoom);
-        };
         sprite->addEventListener(ml);
         float duration=0;
         sprite->schedule([duration](float dt)mutable{
@@ -116,12 +109,16 @@ static bool init()
             auto dxy = pos - R2;
             life->setPosition(oldPos2+dxy);
         };
-        ml2->onScroll = [scene](EventMouse *e){
+        ml2->onScroll = [life,scene](EventMouse *e){
+            auto p = life->toLocal(e->getCursorWorld());
+            if(!life->hit(p))
+                return false;
             auto dy = e->getScrollY();
             auto zoom = scene->getCamera().getZoomFactor();
             zoom += dy *.1f;
             printf("dy = %f, zoom=%f\n", (float)dy, zoom);
             scene->getCamera().setZoomFactor(zoom);
+            return true;
         };
         life->addEventListener(ml2);
     }

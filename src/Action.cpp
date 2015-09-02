@@ -1,6 +1,5 @@
 #include "Action.hpp"
 
-
 void ActionInterval::step(float dt)
 {
     if(isFirstFrame())
@@ -61,35 +60,39 @@ void Sequence::setNode(Node *node)
     if(actions_.size()>0)
         actions_[0]->setNode(node);
 }
-
+void Sequence::step(float dt)
+{
+    if(idx_>=(int)actions_.size())
+        return;
+    actions_[idx_]->step(dt);
+}
 void Sequence::update()
 {
+    if(idx_>=(int)actions_.size())
+        return;
     auto &a = actions_[idx_];
     a->update();
-    if(a->isDone()){
-        if(++idx_<(int)actions_.size())
-            actions_[idx_]->reset();
+    if(a->isDone() && idx_+1<(int)actions_.size()){
+        actions_[++idx_]->reset();
     }
 }
 void Sequence::reset()
 {
     idx_=0;
     ActionSet::reset();
-    if(actions_.size()>0)
-        actions_[0]->reset();
 }
 Parallel * Parallel::create(std::initializer_list<Ref_ptr<FiniteTimeAction>>  &&list)
 {
     auto p = MM<Parallel>::New();
-
     p->init(std::move(list));
+    p->done_.assign(p->actions_.size(), false);
     return p;
 }
 Parallel * Parallel::create(const std::initializer_list<Ref_ptr<FiniteTimeAction>>  &list)
 {
     auto p = MM<Parallel>::New();
-
     p->init(list);
+    p->done_.assign(p->actions_.size(), false);
     return p;
 }
 Parallel * Parallel::clone()const
@@ -99,7 +102,7 @@ Parallel * Parallel::clone()const
         auto aa = x->clone();
         a->actions_.push_back(aa);
     }
-
+    a->done_.assign(actions_.size(), false);
     return a;
 }
 Parallel * Parallel::reverse()const
@@ -109,35 +112,47 @@ Parallel * Parallel::reverse()const
         auto aa = (*it)->reverse();
         a->actions_.push_back(aa);
     }
+    a->done_.assign(actions_.size(), false);
     return a;
 }
 bool Parallel::isDone()const
 {
-    for(auto &a : actions_){
-	if(!a->isDone())
+    for(auto d : done_){
+    if(!d)
 	    return false;
     }
     return true;
 }
 void Parallel::step(float dt)
 {
-    for(auto &a : actions_){
-	a->step(dt);
+    int i;
+    int n = (int)actions_.size();
+    for(i=0; i<n; i++){
+        if(!done_[i])
+            actions_.at(i)->step(dt);
     }
 }
 void Parallel::reset()
 {
     ActionSet::reset();
+    done_.assign(actions_.size(), false);
 }
 
 void Parallel::update()
 {
-    for(auto &a : actions_){
-	a->update();
+    int i;
+    int n = (int)actions_.size();
+    for(i=0; i<n; i++){
+        auto a = actions_.at(i).get();
+        if(!done_[i])
+            a->update();
+        if(a->isDone())
+            done_[i] = true;
     }
 }
 TimeScale * TimeScale::create(FiniteTimeAction *inner, float scale)
 {
+    Assert(scale>0, "time scale <=0");
     auto a = MM<TimeScale>::New();
     a->inner_ = inner;
     a->scale_ = scale;

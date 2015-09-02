@@ -15,10 +15,14 @@ void EventListener::reset()
     node_=nullptr;
 }
 
+// handle first phase: press or scroll
 bool EventMouseListener::handle(Event *e)
 {
     auto ev = static_cast<EventMouse*>(e);
-    if(onPress(ev))
+    auto code = ev->getMouseCode();
+    if(code==MouseCode::PRESS && onPress && onPress(ev))
+        return true;
+    if(code==MouseCode::SCROLL && onScroll && onScroll(ev))
         return true;
     return false;
 }

@@ -8,13 +8,15 @@
 class Delay : public ActionInterval
 {
     public:
-        static Delay * create(float delay){auto d=MM<Delay>::New();d->init(delay);return d;}
+        static Delay * create(float delay);
     protected:
         Delay * clone() const override{return create(getDuration());}
         Delay * reverse() const override{return create(getDuration());}
         virtual void update()override{}
         virtual void update(float)override{}
 };
+
+/*
 class B1 : public ActionInterval
 {
 public:
@@ -32,13 +34,14 @@ protected:
     float start_;
     float by_;
 };
+*/
 
 class RotateBy : public ActionInterval
 {
     public:
         static RotateBy * create(float duration, float degree);
-        virtual RotateBy * clone()const override;
-        virtual RotateBy * reverse()const override;
+        virtual RotateBy * clone()const override{return create(getDuration(), by_);}
+        virtual RotateBy * reverse()const override{return create(getDuration(), -by_);}
     protected:
         virtual void reset()override;
         virtual void update(float percent)override;
@@ -47,16 +50,16 @@ class RotateBy : public ActionInterval
             ActionInterval::init(duration);
             by_=by;
         }
-	float start_;
-        float by_;
+    float start_;
+    float by_;
 };
 class MoveBy : public ActionInterval
 {
     public:
         static MoveBy * create(float duration, float dx, float dy);
         static MoveBy * create(float duration, const Vec2 &dxy);
-        virtual MoveBy * clone()const override;
-        virtual MoveBy * reverse()const override;
+        virtual MoveBy * clone()const override{return create(getDuration(), dXY_);}
+        virtual MoveBy * reverse()const override{return create(getDuration(), -dXY_);}
     protected:
         virtual void reset()override;
         virtual void update(float percent)override;
@@ -73,8 +76,8 @@ class ScaleBy : public ActionInterval
 public:
     static ScaleBy * create(float duration, float dScaleX, float dScaleY);
     static ScaleBy * create(float duration, const Vec2 &dScale);
-    virtual ScaleBy *clone() const override;
-    virtual ScaleBy *reverse()const override;
+    virtual ScaleBy *clone() const override{return create(getDuration(), d2_);}
+    virtual ScaleBy *reverse()const override{return create(getDuration(), -d2_);}
 protected:
     virtual void reset()override;
     virtual void update(float percent)override;
@@ -91,8 +94,8 @@ class SizeBy : public ActionInterval
     public:
         static SizeBy * create(float duration, float dw, float dh);
         static SizeBy * create(float duration, const Vec2 &dSize);
-        virtual SizeBy * clone()const override;
-        virtual SizeBy * reverse()const override;
+        virtual SizeBy * clone()const override{return create(getDuration(), dSize_);}
+        virtual SizeBy * reverse()const override{return create(getDuration(), -dSize_);}
     protected:
         virtual void reset()override;
         virtual void update(float percent)override;
@@ -111,7 +114,7 @@ class RotateTo : public ActionInterval
 {
     public:
         static RotateTo * create(float duration, float to);
-        virtual RotateTo * clone()const override;
+        virtual RotateTo * clone()const override{return create(getDuration(), to_);}
         //virtual RotateTo * reverse()const override;
     protected:
         virtual void reset()override;
@@ -129,7 +132,7 @@ class MoveTo : public ActionInterval
     public:
         static MoveTo * create(float duration, float x, float y);
         static MoveTo * create(float duration, const Vec2 &to);
-        virtual MoveTo * clone()const override;
+        virtual MoveTo * clone()const override{return create(getDuration(), to_);}
     protected:
         virtual void reset()override;
         virtual void update(float percent)override;
@@ -146,7 +149,7 @@ class ScaleTo : public ActionInterval
 public:
     static ScaleTo * create(float duration, float sx, float sy);
     static ScaleTo * create(float duration, const Vec2 &to);
-    virtual ScaleTo * clone()const override;
+    virtual ScaleTo * clone()const override{return create(getDuration(), to_);}
 protected:
     virtual void reset()override;
     virtual void update(float percent)override;
@@ -164,7 +167,7 @@ class SizeTo : public ActionInterval
     public:
         static SizeTo * create(float duration, float w, float h);
         static SizeTo * create(float duration, const Vec2 &to);
-        virtual SizeTo * clone()const override;
+        virtual SizeTo * clone()const override{return create(getDuration(), to_);}
     protected:
         virtual void reset()override;
         virtual void update(float percent)override;

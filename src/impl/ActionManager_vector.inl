@@ -27,10 +27,8 @@ class ActionManager_vector : public ActionManager
 typedef ActionManager_vector ActionManager_impl;
 void ActionManager_vector::update(float delta)
 {
-    //printf("am ; size = %d\n", (int)actions_.size());
     for(auto it=actions_.begin(); it!=actions_.end();){
         auto a = it->action_.get();
-        Assert(a != nullptr, "Action is nullptr");
         if(it->markRemove_ || (!it->paused_ && !a->getNode()->isActionPaused() && run__(a, delta))){
             it =actions_.erase(it);
         }else{
@@ -115,4 +113,3 @@ void ActionManager_vector::moveNode(ActionManager *am, Scene *scene)
     }
 }
 
-//}

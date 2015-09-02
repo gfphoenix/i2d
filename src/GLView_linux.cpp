@@ -187,11 +187,13 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
     Director::getInstance()->handleEvent(&e);
 }
 
-void GLViewLinux::scroll_callback(GLFWwindow *, double xoffset, double yoffset)
+void GLViewLinux::scroll_callback(GLFWwindow *win, double xoffset, double yoffset)
 {
+    GLViewLinux *view = (GLViewLinux*)::glfwGetWindowUserPointer(win);
     EventMouse_linux e(MouseCode::SCROLL);
     e.setMouseButton(MouseButton::MIDDLE);
     e.setScroll((float)xoffset, (float)yoffset);
+    e.setCursorPos(view->getCursor());
     Director::getInstance()->handleEvent(&e);
 }
 

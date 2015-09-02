@@ -1,0 +1,47 @@
+
+void Node::onEnter(){
+    Assert(!running_, "Node is running when onEnter");
+    running_ = true;
+    beforeEnter();
+    for(const auto& child : children_){
+        child->onEnter();
+    }
+    afterEnter();
+}
+void Node::onExit(){
+    Assert(running_, "Node is not running when onExit");
+    beforeExit();
+    for(const auto& child : children_){
+        child->onExit();
+    }
+    afterExit();
+    running_ = false;
+}
+beforeEnter: set stage,
+afterEnter : user init code
+void Node::beforeEnter()
+{
+    stage_ = parent_->stage_;
+}
+
+// Note: move action node and scheduler event from the default global 
+// manager to the scene's manager
+void Node::afterEnter()
+{
+    am_ = getScene()->getActionManager();
+    sched_ = getScene()->getScheduler();
+        
+    if(hasListeners())
+        getStageLayer()->setNeedOrderListeners();
+    
+    
+}
+void Node::beforeExit()
+{
+    if(hasListeners() && getStageLayer())
+        getStageLayer()->setNeedOrderListeners();
+}
+void Node::afterExit()
+{
+    stage_=nullptr;
+}

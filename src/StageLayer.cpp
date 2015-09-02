@@ -160,6 +160,8 @@ bool StageLayer::handleEventMouse(EventMouse *e)
     auto btn = e->getMouseButton();
     auto idx = (int)btn;
     switch(e->getMouseCode()){
+            // FIX: no need to start with press ok
+        case MouseCode::SCROLL:
         case MouseCode::PRESS:
             {
                 auto const &pos = e->getCursorPos();
@@ -191,18 +193,6 @@ bool StageLayer::handleEventMouse(EventMouse *e)
                     auto worldPos = screenToWorld(e->getCursorPos());
                     e->setCursorWorld(worldPos);
                     l->onMove(e);
-                }
-                return ok;
-            }
-            // FIX: no need to start with press ok
-        case MouseCode::SCROLL:
-            {
-                auto l = static_cast<EventMouseListener*>(mouseSlots_[idx].get());
-                auto ok = l && l->isRunning();
-                if(ok && l->onScroll){
-                    auto worldPos = screenToWorld(e->getCursorPos());
-                    e->setCursorWorld(worldPos);
-                    l->onScroll(e);
                 }
                 return ok;
             }

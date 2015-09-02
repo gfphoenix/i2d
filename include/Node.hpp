@@ -178,7 +178,7 @@ public:
     inline Vec2 toLocalAR(const Vec2 &world){return toLocal(world)-(getAnchor()*getSize());}
     inline Vec2 toWorld(float localX, float localY){return toWorld(Vec2(localX,localY));}
     inline Vec2 toLocal(float worldX, float worldY){return toLocal(Vec2(worldX,worldY));}
-    protected:
+protected:
     virtual void onRemove__();
     bool updateWorldTransformRec__();
     void updateNodeToParentTransform__();

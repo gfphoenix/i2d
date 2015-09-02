@@ -8,13 +8,13 @@
 #include <algorithm>
 
 Scene::Scene(const Vec2 &designSize, ResolutionPolicy policy):
-    StageLayer(designSize, policy),stages(nullptr)
+    StageLayer(designSize, policy),stages_(nullptr)
 {
     scene_ = this;
     stage_ = this;
-    sch_ = Scheduler::create();
+    scheduler_ = Scheduler::create();
     actionManager_ = ActionManager::create();
-    sch_->schedule(this, "ActionManager",
+    scheduler_->schedule(this, "ActionManager",
             [this](float dt)->bool{
             actionManager_->update(dt);
             return false;
@@ -22,7 +22,7 @@ Scene::Scene(const Vec2 &designSize, ResolutionPolicy policy):
 }
 Scene::~Scene()
 {
-    delete stages;
+    delete stages_;
 }
 void Scene::onWinSizeChanged()
 {
@@ -30,30 +30,30 @@ void Scene::onWinSizeChanged()
             s->onWinSizeChanged();
             });
 }
-void Scene::addMoreStage(Ref_ptr<StageLayer> stage, int zIndex)
+void Scene::addExtraStage(Ref_ptr<StageLayer> stage, int zIndex)
 {
-    if(stages==nullptr)
-        stages = new std::vector<Ref_ptr<StageLayer>>;
+    if(stages_==nullptr)
+        stages_ = new std::vector<Ref_ptr<StageLayer>>;
     stage->scene_ = this;
     stage->setZindex(zIndex);
 
-    stages->push_back(std::move(stage));
-    if(stages->size()>1)
+    stages_->push_back(std::move(stage));
+    if(stages_->size()>1)
         updateStagePrio();
 }
 // FIX: no onExit running when remove
 void Scene::removeExtraStageAt(int idx)
 {
-    if(idx<0 || stages==nullptr || idx>=(int)stages->size())
+    if(idx<0 || stages_==nullptr || idx>=(int)stages_->size())
         return;
-    stages->erase(stages->begin()+idx);
+    stages_->erase(stages_->begin()+idx);
 }
 // FIX: no onExit running when remove
 void Scene::removeExtraStage(StageLayer *stage)
 {
-    for(auto it=stages->begin(), end=stages->end(); it!=end; ++it){
+    for(auto it=stages_->begin(), end=stages_->end(); it!=end; ++it){
         if(*it == stage){
-            stages->erase(it);
+            stages_->erase(it);
             break;
         }
     }
@@ -61,8 +61,8 @@ void Scene::removeExtraStage(StageLayer *stage)
 
 void Scene::updateStagePrio()
 {
-    if(stages!=nullptr)
-        std::stable_sort(stages->begin(), stages->end(),
+    if(stages_!=nullptr)
+        std::stable_sort(stages_->begin(), stages_->end(),
                 [](const Ref_ptr<StageLayer> &a, const Ref_ptr<StageLayer> &b){
                 return a->getZindex()<=b->getZindex();
                 });
@@ -73,9 +73,9 @@ void Scene::Render()
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     renderer_.startRenderCallCounter();
 
-    int n = stages ? (int)stages->size()-1 : -1;
+    int n = stages_ ? (int)stages_->size()-1 : -1;
     while(n>=0){
-        auto stage = stages->at(n).get();
+        auto stage = stages_->at(n).get();
         if(stage->getZindex()>=0)
             break;
         stage->Render(&renderer_);
@@ -83,14 +83,14 @@ void Scene::Render()
     }
     StageLayer::Render(&renderer_);
     while(n>=0){
-        stages->at(n--)->Render(&renderer_);
+        stages_->at(n--)->Render(&renderer_);
     }
 }
 void Scene::updateListeners()
 {
-    int n = stages ? (int)stages->size()-1 : -1;
+    int n = stages_ ? (int)stages_->size()-1 : -1;
     while(n>=0){
-        auto stage = stages->at(n).get();
+        auto stage = stages_->at(n).get();
         if(stage->getZindex()<0)
             break;
         stage->updateStageListeners();
@@ -98,7 +98,7 @@ void Scene::updateListeners()
     }
     updateStageListeners();
     while(n>=0){
-        stages->at(n--)->updateStageListeners();
+        stages_->at(n--)->updateStageListeners();
     }
 }
 bool Scene::update(float dt)
@@ -109,10 +109,10 @@ bool Scene::update(float dt)
 
 void Scene::handleSceneEvent(Event *e)
 {
-    // dispatch event to all stages by priority
-    int n = stages ? (int)stages->size()-1 : -1;
+    // dispatch event to all stages_ by priority
+    int n = stages_ ? (int)stages_->size()-1 : -1;
     while(n>=0){
-        auto stage = stages->at(n).get();
+        auto stage = stages_->at(n).get();
         if(stage->getZindex()<0)
             break;
         stage->updateStageListeners();
@@ -124,7 +124,7 @@ void Scene::handleSceneEvent(Event *e)
     if(handleEvent(e))
         goto out;
     while(n>=0){
-        auto stage = stages->at(n--);
+        auto stage = stages_->at(n--);
         stage->updateStageListeners();
         if(stage->handleEvent(e))
             goto out;

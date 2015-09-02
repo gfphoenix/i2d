@@ -8,7 +8,7 @@ class ActionManager : public Ref
 {
     public:
         virtual const std::string getInfo()const{return std::string("ActionManager-0 ");}
-        virtual void addAction(Node *associatedNode, Action *a, bool pause=false)=0;
+        virtual void addAction(Node *node, Action *a, bool pause=false)=0;
         virtual void removeAction(Action *a)=0;
         virtual void removeActionsForNode(Node *node)=0;
 
