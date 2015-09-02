@@ -26,7 +26,13 @@ static bool init()
     sprite->setPosition(S/2.f);
     {
         auto ml = MM<EventMouseListener>::New();
-        ml->onPress = [](EventMouse *){
+        ml->onPress = [sprite](EventMouse *e){
+            auto p = e->getCursorWorld();
+            auto local = sprite->toLocal(p);
+            auto w = sprite->toWorld(0,0);
+            printf("parent=%p, world (%f, %f), local (%f,%f), zero in world(%f, %f)\n", 
+                    sprite->getParent(),
+                    p.x, p.y, local.x, local.y, w.x, w.y);
             return true;
         };
         auto ip = sprite->getPosition();
@@ -47,7 +53,7 @@ static bool init()
         float duration=0;
         sprite->schedule([duration](float dt)mutable{
                 bool out = duration > 10;
-                printf("dt = %f  T=%f\n", dt, duration);
+        //        printf("dt = %f  T=%f\n", dt, duration);
                 duration += dt;
                 return out;
                 },"foobar", 3, 1, 17);
@@ -59,9 +65,9 @@ static bool init()
         auto rep = Repeat::create(rot, -1);
         life->runAction(rep);
         life->schedule([life](float dt){
-                printf("rot=%f\n", life->getRotation());
+                //printf("rot=%f\n", life->getRotation());
                 return false;
-                }, "printRot", 0, .5f, -1);
+                }, "printRot", 0, .5f, 1);
         auto l = MM<EventKeyboardListener>::New();
         l->onPress = [life](EventKeyboard *e){
             printf("key press code = %x\n", (int)e->getKeyCode());

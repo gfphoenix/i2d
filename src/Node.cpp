@@ -30,7 +30,7 @@ Node::Node()
 , running_(false)
 , visible_(true)
 , dirtyChildrenOrder_(false)
-, dirtyTransform_(true)
+, dirty_localTransform_(true)
 {
     Debug("Node::Node\n");    
 }
@@ -110,7 +110,8 @@ void Node::onRemove__()
 void Node::updateWorldTransform__(const Mat3 &parentTransform)
 {
     worldTransform_ = parentTransform * nodeToParentTransform_;
-    dirty_world_1_ = true;
+    dirty_worldTransform_ = false;
+    dirty_worldTransform_1_ = true;
     onChangedTransformation();
 }
 // Mat3
@@ -141,11 +142,18 @@ void Node::updateWorldTransform__(const Mat3 &parentTransform)
 //    id[1][1] = td;
 //    id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
 //    id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
-//    dirtyTransform_ = false;
+//    dirty_localTransform_ = false;
 //}
+void Node::updateNodeToParentTransform_1__()
+{
+    if(dirty_localTransform_1_){
+        nodeToParentTransform_1_ = glm::inverse(nodeToParentTransform_);
+        dirty_localTransform_1_ = false;
+    }
+}
 void Node::updateNodeToParentTransform__()
 {
-    Mat3 &id = nodeToParentTransform_;
+    Mat3 &M = nodeToParentTransform_;
     double C=1, S=0;
 
     if (rotation_ != 0){
@@ -162,15 +170,16 @@ void Node::updateNodeToParentTransform__()
     double td = C * scale_.y;
 
     // 0,1,  3,4,  6,7
-    id[0][0] = ta;
-    id[0][1] = tb;
-    id[1][0] = tc;
-    id[1][1] = td;
-    id[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
-    id[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
-    dirtyTransform_ = false;
+    M[0][0] = ta;
+    M[0][1] = tb;
+    M[1][0] = tc;
+    M[1][1] = td;
+    M[2][0] = ta*(-ax) + tc*(-ay) + pos_.x;
+    M[2][1] = tb*(-ax) + td*(-ay) + pos_.y;
+    dirty_localTransform_ = false;
     // reverse matrix should update, world bit will be set follow
-    dirty_local_1_ = true;
+    dirty_localTransform_1_ = true;
+    dirty_worldTransform_ = true;
 }
 void Node::sortChildrenOrder__()
 {
@@ -244,8 +253,8 @@ void Node::visit(Renderer *renderer, const Mat3 &parentTransform, bool parentTra
         return ;
     if(dirtyChildrenOrder_)
         sortChildrenOrder__();
-    bool dirty = dirtyTransform_ || parentTransformUpdated;
-    if(dirtyTransform_)
+    bool dirty = dirty_localTransform_ || parentTransformUpdated;
+    if(dirty_localTransform_)
         updateNodeToParentTransform__();
     if(dirty)
         updateWorldTransform__(parentTransform);
@@ -317,4 +326,43 @@ void Node::removeEventListener(EventListener *l)
 void Node::clearEventListeners()
 {
     listeners_.clear();
+}
+bool Node::updateWorldTransformRec__()
+{
+    bool dirty;
+    if(parent_==nullptr){
+        dirty = dirty_localTransform_;
+        if(dirty_localTransform_)
+            updateNodeToParentTransform__();
+        if(dirty_worldTransform_){
+            worldTransform_ = nodeToParentTransform_;
+            dirty_worldTransform_ = false;
+        }
+        return dirty;
+    }
+    auto tmp = parent_->updateWorldTransformRec__();
+    dirty = tmp || dirty_localTransform_;
+    if(dirty_localTransform_)
+        updateNodeToParentTransform__();
+    dirty_worldTransform_ = dirty_worldTransform_ || tmp;
+    if(dirty_worldTransform_)
+        updateWorldTransform__(parent_->worldTransform_);
+    return dirty;
+}
+
+Vec2 Node::toWorld(const Vec2 &local)
+{
+    updateWorldTransformRec__();
+    auto v = worldTransform_ * Vec3(local, 1);
+    return Vec2(v);
+}
+Vec2 Node::toLocal(const Vec2 &world)
+{
+    updateWorldTransformRec__();
+    if(dirty_worldTransform_1_){
+        worldTransform_1_ = glm::inverse(worldTransform_);
+        dirty_worldTransform_1_ = false;
+    }
+    auto v = worldTransform_1_ * Vec3(world, 1);
+    return Vec2(v);
 }

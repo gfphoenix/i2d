@@ -51,10 +51,7 @@ public:
 
         const Vec2 &updateStartCursor()
         {
-            double xx, yy;
-            ::glfwGetCursorPos(win_, &xx, &yy);
-            cursorStart_.x = xx;
-            cursorStart_.y = height_-yy;
+            cursorStart_ = getCursor();
             return cursorStart_;
         }
 
@@ -142,12 +139,9 @@ public:
 };
 void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action, int mods)
 {
-    float x,y;
     GLViewLinux *view = (GLViewLinux*)::glfwGetWindowUserPointer(win);
     MouseCode code;
     MouseButton bnt;
-    x = view->cursor_.x;
-    y = view->cursor_.y;
 
     switch(action){
     case GLFW_PRESS:
@@ -165,7 +159,6 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
         bnt = MouseButton::LEFT;
         view->pressedLeft = code==MouseCode::PRESS;
         if(view->pressedLeft){
-            //view->cursorStart_ = Vec2(x,y);
             view->updateStartCursor();
         }
         break;
@@ -183,20 +176,13 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
     EventMouse_linux e(code);
     e.setMouseButton(bnt);
     e.setKeyMods((KeyMods)toKeyMods(mods));
-    e.setCursorPos((float)x, (float)y);
+
+    auto cc = view->getCursor();
+    e.setCursorPos(cc.x, cc.y);
     e.setStartPos(view->cursorStart_);
     if(action==GLFW_PRESS){
-        e.setCursorPos(view->cursorStart_.x, view->cursorStart_.y);
-    }
-    {
-        if(action==GLFW_PRESS)
-            printf("mouse press at (%f, %f) cur(%f, %f)\n",
-                   e.getStartPos().x, e.getStartPos().y,
-                   e.getCursorPos().x, e.getCursorPos().y);
-        else if(action==GLFW_RELEASE)
-            printf("mouse release at (%f, %f) cur(%f, %f)\n",
-                   e.getStartPos().x, e.getStartPos().y,
-                   e.getCursorPos().x, e.getCursorPos().y);
+        auto const &p = view->updateStartCursor();
+        e.setCursorPos(p.x, p.y);
     }
     Director::getInstance()->handleEvent(&e);
 }
@@ -206,7 +192,6 @@ void GLViewLinux::scroll_callback(GLFWwindow *, double xoffset, double yoffset)
     EventMouse_linux e(MouseCode::SCROLL);
     e.setMouseButton(MouseButton::MIDDLE);
     e.setScroll((float)xoffset, (float)yoffset);
-    printf("scroll event dxy=(%f,%f)\n", e.getScrollX(), e.getScrollY());
     Director::getInstance()->handleEvent(&e);
 }
 
@@ -230,14 +215,8 @@ void GLViewLinux::cursor_position_callback(GLFWwindow* win, double x, double y)
     e.setMouseButton(MouseButton::LEFT);
     e.setStartPos(view->cursorStart_);
     {
-    //e.setCursorPos(view->cursor_.x, view->cursor_.y);
         auto t = view->getCursor();
         e.setCursorPos(t.x, t.y);
-    }
-    {
-        printf("mouse move at (%f, %f) cur(%f, %f)\n",
-               e.getStartPos().x, e.getStartPos().y,
-               e.getCursorPos().x, e.getCursorPos().y);
     }
     Director::getInstance()->handleEvent(&e);
 }

@@ -52,29 +52,29 @@ public:
     inline float getRotation()const{return rotation_;}
 	inline int   getZindex()const{return zIndex_;}
 
-	inline void setX(float x){pos_.x=x;dirtyTransform_=true;}
-	inline void setY(float y){pos_.y=y;dirtyTransform_=true;}
-	inline void setPosition(float x, float y){pos_.x=x;pos_.y=y;dirtyTransform_=true;}
-    inline void setPosition(const Vec2 &pos){pos_=pos;dirtyTransform_=true;}
-    inline void setWidth(float w){size_.x=w;dirtyTransform_=true;}
-    inline void setHeight(float h){size_.y=h;dirtyTransform_=true;}
-    inline void setSize(float w, float h){size_.x=w;size_.y=h;dirtyTransform_=true;}
-    inline void setSize(const Vec2 &size){size_=size;dirtyTransform_=true;}
-	inline void setAnchorX(float anchorX){anchor_.x=anchorX;dirtyTransform_=true;}
-	inline void setAnchorY(float anchorY){anchor_.y=anchorY;dirtyTransform_=true;}
-	inline void setAnchor(float ax, float ay){anchor_.x=ax;anchor_.y=ay;dirtyTransform_=true;}
-    inline void setAnchor(const Vec2 &anchor){anchor_=anchor;dirtyTransform_=true;}
-	inline void setScaleX(float scaleX){scale_.x=scaleX;dirtyTransform_=true;}
-	inline void setScaleY(float scaleY){scale_.y=scaleY;dirtyTransform_=true;}
-    inline void setScale(float scale){scale_.x=scale_.y=scale;dirtyTransform_=true;}
-	inline void setScale(float sx, float sy){scale_.x=sx;scale_.y=sy;dirtyTransform_=true;}
-    inline void setScale(const Vec2 &scale){scale_=scale;dirtyTransform_=true;}
-    //inline void setSkewX(float skewX){skew_.x=skewX;dirtyTransform_=true;}
-    //inline void setSkewY(float skewY){skew_.y=skewY;dirtyTransform_=true;}
-    //inline void setSkew(float skew){skew_.x=skew_.y=skew;dirtyTransform_=true;}
-	//inline void setSkew(float sx, float sy){skew_.x=sx;skew_.y=sy;dirtyTransform_=true;}
-    //inline void setSkew(const Vec2 &skew){skew_=skew;dirtyTransform_=true;}
-    inline void setRotation(float rotation){rotation_=rotation;dirtyTransform_=true;}
+	inline void setX(float x){pos_.x=x;dirty_localTransform_=true;}
+	inline void setY(float y){pos_.y=y;dirty_localTransform_=true;}
+	inline void setPosition(float x, float y){pos_.x=x;pos_.y=y;dirty_localTransform_=true;}
+    inline void setPosition(const Vec2 &pos){pos_=pos;dirty_localTransform_=true;}
+    inline void setWidth(float w){size_.x=w;dirty_localTransform_=true;}
+    inline void setHeight(float h){size_.y=h;dirty_localTransform_=true;}
+    inline void setSize(float w, float h){size_.x=w;size_.y=h;dirty_localTransform_=true;}
+    inline void setSize(const Vec2 &size){size_=size;dirty_localTransform_=true;}
+	inline void setAnchorX(float anchorX){anchor_.x=anchorX;dirty_localTransform_=true;}
+	inline void setAnchorY(float anchorY){anchor_.y=anchorY;dirty_localTransform_=true;}
+	inline void setAnchor(float ax, float ay){anchor_.x=ax;anchor_.y=ay;dirty_localTransform_=true;}
+    inline void setAnchor(const Vec2 &anchor){anchor_=anchor;dirty_localTransform_=true;}
+	inline void setScaleX(float scaleX){scale_.x=scaleX;dirty_localTransform_=true;}
+	inline void setScaleY(float scaleY){scale_.y=scaleY;dirty_localTransform_=true;}
+    inline void setScale(float scale){scale_.x=scale_.y=scale;dirty_localTransform_=true;}
+	inline void setScale(float sx, float sy){scale_.x=sx;scale_.y=sy;dirty_localTransform_=true;}
+    inline void setScale(const Vec2 &scale){scale_=scale;dirty_localTransform_=true;}
+    //inline void setSkewX(float skewX){skew_.x=skewX;dirty_localTransform_=true;}
+    //inline void setSkewY(float skewY){skew_.y=skewY;dirty_localTransform_=true;}
+    //inline void setSkew(float skew){skew_.x=skew_.y=skew;dirty_localTransform_=true;}
+	//inline void setSkew(float sx, float sy){skew_.x=sx;skew_.y=sy;dirty_localTransform_=true;}
+    //inline void setSkew(const Vec2 &skew){skew_=skew;dirty_localTransform_=true;}
+    inline void setRotation(float rotation){rotation_=rotation;dirty_localTransform_=true;}
     inline void setZindex(int zIndex){
         zIndex_=zIndex;
         if(parent_)
@@ -149,11 +149,37 @@ public:
     // matrix
     virtual void onChangedTransformation(){}
     virtual void onChangedColor(){}
-    inline const Mat3 &getWorldTransform()const{return worldTransform_;}
-    inline const Mat3 &getNodeToParentTransform()const{return nodeToParentTransform_;}
-    //protected:
+    inline const Mat3 &getWorldTransform()
+    {
+        return worldTransform_;
+    }
+    inline const Mat3 &getWorldTransform_1()
+    {
+        return worldTransform_1_;
+    }
+    inline const Mat3 &getNodeToParentTransform()
+    {
+        if(dirty_localTransform_)
+            updateNodeToParentTransform__();
+        return nodeToParentTransform_;
+    }
+    inline const Mat3 &getNodeToParentTransform_1()
+    {
+        if(dirty_localTransform_)
+            updateNodeToParentTransform__();
+        if(dirty_localTransform_1_)
+            updateNodeToParentTransform_1__();
+        return nodeToParentTransform_1_;
+    }
+    Vec2 toWorld(const Vec2 &local);
+    Vec2 toLocal(const Vec2 &world);
+    inline Vec2 toWorld(float localX, float localY){return toWorld(Vec2(localX,localY));}
+    inline Vec2 toLocal(float worldX, float worldY){return toLocal(Vec2(worldX,worldY));}
+    protected:
     virtual void onRemove__();
+    bool updateWorldTransformRec__();
     void updateNodeToParentTransform__();
+    void updateNodeToParentTransform_1__();
     void updateWorldTransform__(const Mat3 &parentTransform);
     void sortChildrenOrder__(); // MUST BE stable sort
     inline const std::vector<Ref_ptr<EventListener>> &getEventListeners()
@@ -196,9 +222,10 @@ public:
     unsigned pauseAction_:1;
     unsigned pauseScheduler_:1;
     unsigned dirtyChildrenOrder_:1;
-    unsigned dirtyTransform_:1;
-    unsigned dirty_world_1_:1;
-    unsigned dirty_local_1_:1;
+    unsigned dirty_localTransform_:1;
+    unsigned dirty_localTransform_1_:1;
+    unsigned dirty_worldTransform_:1;
+    unsigned dirty_worldTransform_1_:1;
 
 };
 
