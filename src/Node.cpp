@@ -284,7 +284,7 @@ void Node::stopAction(Action *a)
 {
     if(a == nullptr)
         return;
-    Assert(a->getNode() != this, "Action's node is not the same");
+    Assert(a->getNode() == this, "Action's node is not the same");
     am_->removeAction(a);
 }
 void Node::pauseAction(Action *a)
@@ -298,7 +298,6 @@ void Node::resumeAction(Action *a)
 
 void Node::clearActions()
 {
-    Assert(stage_ != nullptr, "Scene is nullptr");
     am_->removeActionsForNode(this);
 }
 void Node::addEventListener(EventListener *l)
@@ -365,4 +364,9 @@ Vec2 Node::toLocal(const Vec2 &world)
     }
     auto v = worldTransform_1_ * Vec3(world, 1);
     return Vec2(v);
+}
+bool Node::hit(const Vec2 &local)
+{
+    auto const &size = getSize();
+    return local.x>=0 && local.x<=size.x && local.y>=0 && local.y<=size.y;
 }

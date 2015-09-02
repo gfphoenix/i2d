@@ -15,6 +15,25 @@ class Camera
         inline const Mat4 &getPV()const{return PV_;}
         inline const Mat4 &getPV_1()const{return PV_1;}
         inline const Vec2 &getEye()const{return eye_;}
+        inline Mat4 getViewMatrix()const
+        {
+            auto view = glm::lookAt(
+                    Vec3(eye_, 0),
+                    Vec3(eye_, -1),
+                    Vec3(0, 1, 0)
+                    );
+            if(zoom_!=1.f){
+                view[0][0] *= zoom_;
+                view[0][1] *= zoom_;
+                view[1][0] *= zoom_;
+                view[1][1] *= zoom_;
+                view[2][0] *= zoom_;
+                view[2][1] *= zoom_;
+                view[3][0] *= zoom_;
+                view[3][1] *= zoom_;
+            }
+            return view;
+        }
         inline float getZoomFactor()const{return zoom_;}
         // affect camera position in world space
         inline void setEye__(float x, float y){setEye__(Vec2(x,y));}
@@ -54,23 +73,7 @@ class Camera
 
         inline void update()
         {
-            auto view = glm::lookAt(
-                    Vec3(eye_, 0),
-                    Vec3(eye_, -1),
-                    Vec3(0, 1, 0)
-                    );
-            if(zoom_!=1.f){
-                view[0][0] *= zoom_;
-                view[0][1] *= zoom_;
-                view[1][0] *= zoom_;
-                view[1][1] *= zoom_;
-                view[2][0] *= zoom_;
-                view[2][1] *= zoom_;
-                view[3][0] *= zoom_;
-                view[3][1] *= zoom_;
-            }
-
-            PV_ = proj_ * view;
+            PV_ = proj_ * getViewMatrix();
             PV_1 = glm::inverse(PV_);
         }
     protected:

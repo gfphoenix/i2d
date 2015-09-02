@@ -175,8 +175,11 @@ bool StageLayer::handleEventMouse(EventMouse *e)
             {
                 auto l = static_cast<EventMouseListener*>(mouseSlots_[idx].get());
                 auto ok = l && l->isRunning();
-                if(ok && l->onRelease)
+                if(ok && l->onRelease){
+                    auto worldPos = screenToWorld(e->getCursorPos());
+                    e->setCursorWorld(worldPos);
                     l->onRelease(e);
+                }
                 mouseSlots_[idx] = nullptr;
                 return ok;
             }
@@ -184,8 +187,11 @@ bool StageLayer::handleEventMouse(EventMouse *e)
             {
                 auto l = static_cast<EventMouseListener*>(mouseSlots_[idx].get());
                 auto ok = l && l->isRunning();
-                if(ok && l->onMove)
+                if(ok && l->onMove){
+                    auto worldPos = screenToWorld(e->getCursorPos());
+                    e->setCursorWorld(worldPos);
                     l->onMove(e);
+                }
                 return ok;
             }
             // FIX: no need to start with press ok
@@ -193,8 +199,11 @@ bool StageLayer::handleEventMouse(EventMouse *e)
             {
                 auto l = static_cast<EventMouseListener*>(mouseSlots_[idx].get());
                 auto ok = l && l->isRunning();
-                if(ok && l->onScroll)
+                if(ok && l->onScroll){
+                    auto worldPos = screenToWorld(e->getCursorPos());
+                    e->setCursorWorld(worldPos);
                     l->onScroll(e);
+                }
                 return ok;
             }
     }

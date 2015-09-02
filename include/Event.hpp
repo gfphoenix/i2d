@@ -117,8 +117,11 @@ class EventMouse : public Event
         inline void setKeyMods(KeyMods mods){mods_=mods;}
         inline void setStartPos(const Vec2 &pos){pos0_=pos;}
         inline void setCursorPos(float x, float y){pos1_.x=x;pos1_.y=y;}
+        inline void setCursorPos(const Vec2 &pos){pos1_=pos;}
         inline void setCursorWorld(float x, float y){world1_.x=x;world1_.y=y;}
+        inline void setCursorWorld(const Vec2 &worldPos){world1_=worldPos;}
         inline void setScroll(float scollX, float scrollY){scroll_.x=scollX;scroll_.y=scrollY;}
+        inline void setScroll(const Vec2 &scroll){scroll_=scroll;}
 
         MouseButton button_;
         MouseCode mouseCode_;

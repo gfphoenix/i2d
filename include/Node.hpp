@@ -130,6 +130,7 @@ public:
     void addEventListener(EventListener *l);
     void removeEventListener(EventListener *l);
     void clearEventListeners();
+    virtual bool hit(const Vec2 &local);
 
     // scheduler
     //inline void scheduleUpdate(){sched_->scheduleUpdate(this);}
@@ -173,6 +174,8 @@ public:
     }
     Vec2 toWorld(const Vec2 &local);
     Vec2 toLocal(const Vec2 &world);
+    inline Vec2 toWorldAR(const Vec2 &localAR){return toWorld(getAnchor()*getSize()+localAR);}
+    inline Vec2 toLocalAR(const Vec2 &world){return toLocal(world)-(getAnchor()*getSize());}
     inline Vec2 toWorld(float localX, float localY){return toWorld(Vec2(localX,localY));}
     inline Vec2 toLocal(float worldX, float worldY){return toLocal(Vec2(worldX,worldY));}
     protected:

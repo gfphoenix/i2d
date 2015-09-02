@@ -13,6 +13,10 @@
 #include <ActionInterval.hpp>
 
 Vec2 S = Vec2(480, 800);
+Vec2 R1;
+Vec2 oldPos;
+Vec2 R2;
+Vec2 oldPos2;
 static bool init()
 {
     auto scene = MM<Scene>::New(S);
@@ -29,18 +33,19 @@ static bool init()
         ml->onPress = [sprite](EventMouse *e){
             auto p = e->getCursorWorld();
             auto local = sprite->toLocal(p);
+            if(!sprite->hit(local))
+                return false;
             auto w = sprite->toWorld(0,0);
-            printf("parent=%p, world (%f, %f), local (%f,%f), zero in world(%f, %f)\n", 
-                    sprite->getParent(),
-                    p.x, p.y, local.x, local.y, w.x, w.y);
+            R1 = e->getCursorWorld();
+            oldPos = sprite->getPosition();
+            printf("R1(%f, %f), oldPos(%f, %f)\n", R1.x, R1.y, oldPos.x, oldPos.y);
             return true;
         };
-        auto ip = sprite->getPosition();
-        ml->onMove = [ip,sprite](EventMouse *e){
-            auto const &start = e->getStartPos();
-            auto const &pos = e->getCursorPos();
-            auto dxy = pos - start;
-            sprite->setPosition(ip+dxy);
+        ml->onMove = [sprite](EventMouse *e){
+            auto w = e->getCursorWorld();
+            auto dxy = w - R1;
+//            printf("oldPos(%f,%f), w(%f, %f), dxy(%f, %f)\n", oldPos.x, oldPos.y, w.x, w.y, dxy.x, dxy.y);
+            sprite->setPosition(oldPos+dxy);
         };
         ml->onScroll = [scene](EventMouse *e){
             auto dy = e->getScrollY();
@@ -59,7 +64,7 @@ static bool init()
                 },"foobar", 3, 1, 17);
         auto life = MM<Sprite>::New();
         life->setTextureRegion(tm->loadTexture("life.png")->getTextureRegion());
-        scene->addChild(life);
+        sprite->addChild(life);
         life->setPosition(300, 300);
         auto rot = RotateBy::create(3, 180);
         auto rep = Repeat::create(rot, -1);
@@ -96,16 +101,20 @@ static bool init()
         life->addEventListener(l);
 
         auto ml2 = MM<EventMouseListener>::New();
-        ml2->onPress = [](EventMouse *e){
-            auto const &p = e->getStartPos();
-            return p.x<=120 && p.y<=200;
+        ml2->onPress = [life](EventMouse *e){
+            auto const &p = e->getCursorWorld();
+            auto local = life->toLocal(p);
+            if(!life->hit(local))
+                return false;
+            printf("click life OK\n");
+            R2 = p;
+            oldPos2 = life->getPosition();
+            return true;
         };
-        auto ip2 = life->getPosition();
-        ml2->onMove = [ip2,life](EventMouse *e){
-            auto const &start = e->getStartPos();
-            auto const &pos = e->getCursorPos();
-            auto dxy = pos - start;
-            life->setPosition(ip2+dxy*.5f);
+        ml2->onMove = [life](EventMouse *e){
+            auto const &pos = e->getCursorWorld();
+            auto dxy = pos - R2;
+            life->setPosition(oldPos2+dxy);
         };
         ml2->onScroll = [scene](EventMouse *e){
             auto dy = e->getScrollY();

@@ -177,7 +177,7 @@ void GLViewLinux::mouse_button_callback(GLFWwindow *win, int button, int action,
     e.setMouseButton(bnt);
     e.setKeyMods((KeyMods)toKeyMods(mods));
 
-    auto cc = view->getCursor();
+    auto const &cc = view->cursor_;
     e.setCursorPos(cc.x, cc.y);
     e.setStartPos(view->cursorStart_);
     if(action==GLFW_PRESS){
@@ -207,16 +207,13 @@ GLView * GLView::create()
 void GLViewLinux::cursor_position_callback(GLFWwindow* win, double x, double y)
 {
     auto view = static_cast<GLViewLinux*>(::glfwGetWindowUserPointer(win));
-    view->cursor_.x = x;
-    view->cursor_.y = view->height_-y;
     if(!view->pressedLeft)
         return ;
+    view->cursor_.x = x;
+    view->cursor_.y = view->height_-y;
     EventMouse_linux e(MouseCode::MOVE);
     e.setMouseButton(MouseButton::LEFT);
     e.setStartPos(view->cursorStart_);
-    {
-        auto t = view->getCursor();
-        e.setCursorPos(t.x, t.y);
-    }
+    e.setCursorPos(view->cursor_);
     Director::getInstance()->handleEvent(&e);
 }
