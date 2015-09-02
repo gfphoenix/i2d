@@ -25,7 +25,7 @@ all input handler is registered by attaching a specific event listener to an exi
 
 # SOME EIXSTING PROBLEAMS:
 1. mouse scroll is handled not correctly!
-2. there is a "jumping" when moving an object by mouse. I don't know why
+2. there is a "jumping" when moving an object by mouse. I don't know why. (fixed)
 
 # RE-DESIGN OR OPTIMIZE ???
 I want the ActionManager and Scheduler are owned by Scene, not globally.
