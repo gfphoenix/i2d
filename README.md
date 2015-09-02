@@ -34,7 +34,7 @@ I want the ActionManager and Scheduler are owned by Scene, not globally.
 
  
 # TO DO NEXT:
-1. point transformation between nodes
+1. point transformation between nodes (done)
 2. re-design Sprite
 3. defaultShader : should design a new api to easily draw more objects in a single node
 4. multi-thread and async loading files
