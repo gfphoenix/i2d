@@ -1,11 +1,12 @@
 #ifndef _DIRECTOR_HPP
 #define _DIRECTOR_HPP
 #include "Ref.hpp"
+#include "ActionManager.hpp"
+#include "Scheduler.hpp"
 #include "GLView.h"
 #include "Scene.hpp"
 #include "types.hpp"
 #include <vector>
-#include <IdleContainer.hpp>
 
 class Event;
 class Director : public Ref
@@ -41,13 +42,16 @@ class Director : public Ref
 
         inline float getDeltaTime()const{return deltaTime_;}
         inline void markNextZeroTime(){skipOneFrame_=true;}
-        inline const IdleContainer &getIdleContainer()const{return idle_;}
+        inline ActionManager *getIdleActionManager()const{return am_.get();}
+        inline Scheduler *getIdleScheduler()const{return sched_.get();}
     protected:
         friend class MM<Director>;
         Director();
         void updateDeltaTime();
-        IdleContainer idle_;
+
         Ref_ptr<GLView> view_;
+        Ref_ptr<ActionManager> am_;
+        Ref_ptr<Scheduler> sched_;
         float deltaTime_;
         float duration_=0;
         struct timeval lastTime_;

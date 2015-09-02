@@ -6,7 +6,6 @@
  */
 
 #include <Director.hpp>
-#include <IdleContainer.hpp>
 #include <Node.hpp>
 #include <StageLayer.hpp>
 #include <Scene.hpp>
@@ -22,8 +21,6 @@ Node::Node()
 , scale_(1.f, 1.f)
 , rotation_(0)
 , zIndex_(0)
-, am_(Director::getInstance()->getIdleContainer().getIdleActionManager())
-, sched_(Director::getInstance()->getIdleContainer().getIdleScheduler())
 , parent_(nullptr)
 , stage_(nullptr)
 , shader_(nullptr)
@@ -32,12 +29,13 @@ Node::Node()
 , dirtyChildrenOrder_(false)
 , dirty_localTransform_(true)
 {
-    Debug("Node::Node\n");    
+    auto d = Director::getInstance();
+    am_ = d->getIdleActionManager();
+    sched_=d->getIdleScheduler();
 }
 
 Node::~Node()
 {
-    Debug("Node::~Node\n");
 }
 Scene *Node::getScene()
 {
@@ -47,28 +45,17 @@ Scene *Node::getScene()
 void Node::onPause(){}
 void Node::onResume(){}
 //set stage or scene from parent, etc.
+//if a node has no parent, it should override this method
 void Node::beforeEnter()
 {
     stage_ = parent_->stage_;
 }
-
 void Node::afterEnter()
 {
-    auto am = getScene()->getActionManager();
-    if(am_!=am){
-        am_->moveNode(am, this);
-        am_ = am;
-    }
-    {
-        if(hasListeners())
-            getStageLayer()->setNeedOrderListeners();
-    }
-    auto sch = getScene()->getScheduler();
-    if(sch != sched_){
-        // move scheduled task
-        sched_->moveNode(sch, this);
-        sched_ = sch;
-    }
+    am_ = getScene()->getActionManager();
+    sched_ = getScene()->getScheduler();
+    if(hasListeners())
+        getStageLayer()->setNeedOrderListeners();
 }
 void Node::beforeExit()
 {

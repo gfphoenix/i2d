@@ -296,6 +296,6 @@ found: // trace the trigger event
     return foundListener(e, L);
 }
 void StageLayer::beforeEnter(){}
-void StageLayer::beforeExit(){}
-void StageLayer::afterEnter(){}
+void StageLayer::beforeExit(){Node::beforeExit();}
+void StageLayer::afterEnter(){Node::afterEnter();}
 void StageLayer::afterExit(){}

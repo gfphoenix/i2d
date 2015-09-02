@@ -14,7 +14,7 @@ Scene::Scene(const Vec2 &designSize, ResolutionPolicy policy):
     stage_ = this;
     sch_ = Scheduler::create();
     actionManager_ = ActionManager::create();
-    sch_->schedule(actionManager_.get(), "ActionManager",
+    sch_->schedule(this, "ActionManager",
             [this](float dt)->bool{
             actionManager_->update(dt);
             return false;
@@ -109,7 +109,6 @@ bool Scene::update(float dt)
 
 void Scene::handleSceneEvent(Event *e)
 {
-    //updateListeners();
     // dispatch event to all stages by priority
     int n = stages ? (int)stages->size()-1 : -1;
     while(n>=0){
@@ -131,7 +130,6 @@ void Scene::handleSceneEvent(Event *e)
             goto out;
     }
 out:
-    //printf("HandleScene event ...\n");
     return;
 }
 void Scene::onEnter()
@@ -139,11 +137,19 @@ void Scene::onEnter()
     foreachStageLayer([this](StageLayer *stage){
             stage->scene_ = this;
             stage->StageLayer::onEnter();
-            printf("scene::onenter...\n");
             });
 }
 void Scene::onExit()
 {
-
+    foreachStageLayer([this](StageLayer *stage){
+            stage->StageLayer::onExit();
+            });
+}
+void Scene::afterEnter()
+{
+    StageLayer::afterEnter();
+    auto d = Director::getInstance();
+    d->getIdleActionManager()->moveNode(getActionManager(), this);
+    d->getIdleScheduler()->moveNode(getScheduler(), this);
 }
 

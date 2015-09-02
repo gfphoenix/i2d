@@ -3,6 +3,7 @@
 #include "Ref.hpp"
 #include "Action.hpp"
 class Node;
+class Scene;
 class ActionManager : public Ref
 {
     public:
@@ -15,10 +16,12 @@ class ActionManager : public Ref
         virtual void pauseActionsForNode(Node *node)=0;
         virtual void resumeAction(Action *a)=0;
         virtual void resumeActionsForNode(Node *node)=0;
-        virtual void moveNode(ActionManager *am, Node *node)=0;
         virtual void update(float delta)=0;
         static Ref_ptr<ActionManager> create();
     protected:
+        friend class Scene;
+        friend class Node;
+        virtual void moveNode(ActionManager *am, Scene *scene)=0;
         inline bool run__(Action *a, float dt)const{a->step(dt);a->update();return a->isDone();}
         virtual ~ActionManager(){}
 };

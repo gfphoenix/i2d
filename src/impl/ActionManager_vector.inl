@@ -20,7 +20,7 @@ class ActionManager_vector : public ActionManager
         virtual void pauseActionsForNode(Node *node)override;
         virtual void resumeAction(Action *a)override;
         virtual void resumeActionsForNode(Node *node)override;
-        virtual void moveNode(ActionManager *am, Node *node)override;
+        virtual void moveNode(ActionManager *am, Scene *scene)override;
         virtual void update(float delta)override;
         std::vector<ActionNode> actions_;
 };
@@ -95,9 +95,9 @@ void ActionManager_vector::resumeActionsForNode(Node *node)
             it->paused_ = false;
     }
 }
-void ActionManager_vector::moveNode(ActionManager *am, Node *node)
+void ActionManager_vector::moveNode(ActionManager *am, Scene *scene)
 {
-    Assert(am!=nullptr && node!=nullptr, "action-manager or node must not be nil");
+    Assert(am!=nullptr && scene!=nullptr, "action-manager or node must not be nil");
     printf("action size = %u\n", (unsigned)actions_.size());
     for(auto it=actions_.begin(); it!=actions_.end();){
         if(it->markRemove_){
@@ -105,7 +105,8 @@ void ActionManager_vector::moveNode(ActionManager *am, Node *node)
             continue;
         }
         auto a = it->action_.get();
-        if(a->getNode()==node){
+        auto node = a->getNode();
+        if(node->getScene()==scene){
             am->addAction(node, a, it->paused_);
             it = actions_.erase(it);
             continue;

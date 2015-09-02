@@ -1,13 +1,17 @@
+#include <ActionManager.hpp>
 #include <Director.hpp>
 #include <Event.hpp>
 #include <Ref.hpp>
 #include <Scene.hpp>
+#include <Scheduler.hpp>
 #include <mm.hpp>
 #include <sys/time.h>
 #include <unistd.h>
 
 Ref_ptr<Director> Director::director_=nullptr;
-Director::Director()
+Director::Director():
+    am_(ActionManager::create())
+    , sched_(Scheduler::create())
 {
 }
 Director *Director::getInstance()

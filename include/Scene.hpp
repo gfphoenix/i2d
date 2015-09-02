@@ -40,8 +40,9 @@ class Scene : public StageLayer
         virtual void Render();
         virtual bool update(float dt)override;
 
-        virtual void onEnter();
-        virtual void onExit();
+        virtual void onEnter()override;
+        virtual void onExit()override;
+        virtual void afterEnter()override;
         virtual void handleSceneEvent(Event *e);
     protected:
         //
