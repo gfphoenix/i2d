@@ -4,7 +4,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-//#include <stdio.h>
+#include <string.h>
 
 using namespace std::placeholders;
 
@@ -88,6 +88,21 @@ Image &Image::operator=(Image &&m)
     if(p != nullptr)
         stbi_image_free(p);
     return *this;
+}
+void Image::reverseY()
+{
+    auto bytesPerLine = width_*(int)comp_;
+    unsigned char tmp[bytesPerLine];
+    auto n = height_/2;
+    auto off = 0;
+    auto tail = (height_-1)*bytesPerLine;
+    for(int i=0; i<n; i++){
+        ::memcpy(tmp, &data_[off], bytesPerLine);
+        ::mempcpy(&data_[off], &data_[tail], bytesPerLine);
+        ::memcpy(&data_[tail], tmp, bytesPerLine);
+        off += bytesPerLine;
+        tail-= bytesPerLine;
+    }
 }
 
 //int main()

@@ -112,7 +112,20 @@ UV TextureRegion2D::getUV()const
         Vec2((double)i.uv[2].x/w, (double)i.uv[2].y/h),
         Vec2((double)i.uv[3].x/w, (double)i.uv[3].y/h),
     };
-
+}
+void TextureRegion2D::getUV(Vec2 &bl, Vec2 &br, Vec2 &tl, Vec2 &tr)const
+{
+    auto &&i = getUVi();
+    auto w = texture_->getWidth();
+    auto h = texture_->getHeight();
+    bl.x = (double)i.uv[0].x/w;
+    bl.y = (double)i.uv[0].y/h;
+    br.x = (double)i.uv[1].x/w;
+    br.y = (double)i.uv[1].y/h;
+    tl.x = (double)i.uv[2].x/w;
+    tl.y = (double)i.uv[2].y/h;
+    tr.x = (double)i.uv[3].x/w;
+    tr.y = (double)i.uv[3].y/h;
 }
 Ref_ptr<TextureRegion2D> TextureAtlas::get(const string &name)const
 {

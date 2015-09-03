@@ -25,6 +25,7 @@ Texture2D *Texture2D::create(ResourceManager *manager, const string &name)
     auto img = Image::create(name.c_str());
     if(!img)
         return nullptr;
+    //img.reverseY();
     return create(manager, img, name);
 }
 

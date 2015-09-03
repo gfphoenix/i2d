@@ -63,6 +63,7 @@ class TextureRegion2D final : public Ref
         TextureRegion2D(TextureRegion2D &&region);
         inline const Ref_ptr<Texture2D> getTexture2D()const{return texture_;}
         UV getUV()const;
+        void getUV(Vec2 &bl, Vec2 &br, Vec2 &tl, Vec2 &tr)const;
         UVi getUVi()const;
         inline int getWidth()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.y):std::abs(size_.x);}
         inline int getHeight()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.x):std::abs(size_.y);}

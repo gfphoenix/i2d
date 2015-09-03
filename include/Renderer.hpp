@@ -24,7 +24,9 @@ public:
     inline unsigned long long getTotalRenderCalls()const{return totalCalls_;}
     inline void addRenderCall(){totalCalls_++;currentCalls_++;}
     inline const Camera &getCamera()const{return stage_->getCamera();}
+    // must be called in DrawSelf
     virtual void Use(Shader *shader);
+    // only used in stage
     virtual void Flush();
 };
 

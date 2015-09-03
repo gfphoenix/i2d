@@ -22,7 +22,7 @@ public:
     inline const std::string & getName()const{return name_;}
     inline void setName(const std::string &name){name_=name;}
     inline void setName(std::string &&name){name_=std::move(name);}
-    inline const Color4 &getColor()const{return color_;}
+    virtual const Color4 &getColor()const{return color_;}
     inline Color4 getColorCp()const{return color_;}
     inline void setColor(const Color4 &c4){color_=c4;onChangedColor();}
     inline void setColor(const Color3 &c3){setColor(Color4(c3,1));}

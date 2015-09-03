@@ -57,5 +57,6 @@ static Image xxCreate(const std::function<unsigned char *(int *w,int *h, int *co
         inline int getHeight()const{return height_;}
         inline CompType getCompType()const{return comp_;}
         inline void *getData()const{return data_;}
+        void reverseY();
 };
 #endif /* _TEXTURE_LOADER_HPP */
