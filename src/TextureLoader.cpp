@@ -8,15 +8,15 @@
 
 using namespace std::placeholders;
 
-Image Image::xxCreate(const std::function<unsigned char *(int *w,int *h, int *comp)> &fn)
+Image_RGBA8 Image_RGBA8::xxCreate(const std::function<unsigned char *(int *w,int *h, int *comp)> &fn)
 {
     int w, h, comp;
     unsigned char *data = fn(&w, &h, &comp);
     Assert(data != nullptr, "Image::xxCreate() failed");
-    return Image(data, w, h, (CompType)comp);
+    return Image_RGBA8(data, w, h, (CompType)comp);
 }
 
-Image Image::create(const char *filename, CompType ct)
+Image_RGBA8 Image_RGBA8::create(const char *filename, CompType ct)
 {
     return xxCreate(std::bind(stbi_load, filename, _1, _2, _3, (int)ct));
 }
@@ -35,7 +35,7 @@ static int xxEof(void *user)
     auto fn = reinterpret_cast<ImageReader *>(user);
     return fn->IsEof();
 }
-Image Image::create(const ImageReader &reader, CompType ct)
+Image_RGBA8 Image_RGBA8::create(const ImageReader &reader, CompType ct)
 {
     stbi_io_callbacks callback;
     callback.read = xxRead;
@@ -44,23 +44,23 @@ Image Image::create(const ImageReader &reader, CompType ct)
     return xxCreate(std::bind(stbi_load_from_callbacks,
                 &callback, (void*)&reader, _1, _2, _3, (int)ct));
 }
-Image Image::create(const void *data, size_t len, CompType ct)
+Image_RGBA8 Image_RGBA8::create(const void *data, size_t len, CompType ct)
 {
     auto p = (const unsigned char *)data;
     auto &&fn = std::bind(stbi_load_from_memory, p,(int)len, _1, _2, _3, (int)ct);
     return xxCreate(fn);
 }
-Image Image::create(FILE *file, CompType ct)
+Image_RGBA8 Image_RGBA8::create(FILE *file, CompType ct)
 {
     return xxCreate(std::bind(stbi_load_from_file,file,_1,_2,_3,(int)ct));
 }
-Image::Image(unsigned char *data, int w, int h, CompType comp):
+Image_RGBA8::Image_RGBA8(unsigned char *data, int w, int h, CompType comp):
     data_(data)
     , width_(w)
     , height_(h)
     , comp_(comp)
 {}
-Image::Image(Image &&m):
+Image_RGBA8::Image_RGBA8(Image_RGBA8 &&m):
     data_(m.data_)
     , width_(m.width_)
     , height_(m.height_)
@@ -69,14 +69,14 @@ Image::Image(Image &&m):
     m.data_ = nullptr;
     m.width_ = m.height_ = 0;
 }
-Image::~Image()
+Image_RGBA8::~Image_RGBA8()
 {
     if(data_ != nullptr){
         stbi_image_free(data_);
         data_=nullptr;
     }
 }
-Image &Image::operator=(Image &&m)
+Image_RGBA8 &Image_RGBA8::operator=(Image_RGBA8 &&m)
 {
     auto p = data_;
     auto q = m.data_;
@@ -89,7 +89,7 @@ Image &Image::operator=(Image &&m)
         stbi_image_free(p);
     return *this;
 }
-void Image::reverseY()
+void Image_RGBA8::reverseY()
 {
     auto bytesPerLine = width_*(int)comp_;
     unsigned char tmp[bytesPerLine];

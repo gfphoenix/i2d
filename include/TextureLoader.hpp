@@ -18,7 +18,7 @@ enum class CompType
     RGB,
     RGBA,
 };
-class Image final
+class Image_RGBA8 final
 {
     private:
         std::string resource_name;
@@ -26,10 +26,10 @@ class Image final
         int width_;
         int height_;
         CompType comp_;
-static Image xxCreate(const std::function<unsigned char *(int *w,int *h, int *comp)> &fn);
-        Image(const Image &m)=delete;
-        Image &operator=(const Image &)=delete;
-        Image(unsigned char *data, int w,int h, CompType comp);
+static Image_RGBA8 xxCreate(const std::function<unsigned char *(int *w,int *h, int *comp)> &fn);
+        Image_RGBA8(const Image_RGBA8 &m)=delete;
+        Image_RGBA8 &operator=(const Image_RGBA8 &)=delete;
+        Image_RGBA8(unsigned char *data, int w,int h, CompType comp);
             static void *operator new(std::size_t n)=delete;
             static void *operator new[](std::size_t n)=delete;
             static void operator delete(void *ptr)=delete;
@@ -38,19 +38,19 @@ static Image xxCreate(const std::function<unsigned char *(int *w,int *h, int *co
         // this method is platform specific, and should have special care.
         // for android, files from assets, there is one api for accessing it.
         // so, take it carefully
-        static Image create(const char *filename, CompType type);
-        static Image create(const ImageReader &reader, CompType type);
-        static Image create(const void *data, size_t len, CompType type); // decode image from memory
-        static Image create(FILE *file, CompType type);
-        inline static Image create(const char *filename){return create(filename,CompType::Default);}
-        inline static Image create(const ImageReader &reader){return create(reader,CompType::Default);}
-        inline static Image create(const void *data, size_t len){return create(data,len,CompType::Default);}
-        inline static Image create(FILE *file){return create(file,CompType::Default);}
+        static Image_RGBA8 create(const char *filename, CompType type);
+        static Image_RGBA8 create(const ImageReader &reader, CompType type);
+        static Image_RGBA8 create(const void *data, size_t len, CompType type); // decode image from memory
+        static Image_RGBA8 create(FILE *file, CompType type);
+        inline static Image_RGBA8 create(const char *filename){return create(filename,CompType::Default);}
+        inline static Image_RGBA8 create(const ImageReader &reader){return create(reader,CompType::Default);}
+        inline static Image_RGBA8 create(const void *data, size_t len){return create(data,len,CompType::Default);}
+        inline static Image_RGBA8 create(FILE *file){return create(file,CompType::Default);}
 
-        ~Image();
+        ~Image_RGBA8();
         // neither copy constructor nor assign operator is provided
-        Image(Image &&m);
-        Image &operator=(Image &&);
+        Image_RGBA8(Image_RGBA8 &&m);
+        Image_RGBA8 &operator=(Image_RGBA8 &&);
         inline operator bool()const{return data_!=nullptr;}
 
         inline int getWidth()const{return width_;}

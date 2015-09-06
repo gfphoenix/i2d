@@ -9,11 +9,11 @@ BaseSprite::BaseSprite(const Ref_ptr<TextureRegion2D> &region)
 {
     initShader();
     if(region)
-        setSize(region->getSize());
+        setSize(region->getRegionSize());
 }
 void BaseSprite::initShader()
 {
-    auto sh = Shader::getDefaultShader();
+    auto sh = SpriteShader::getInstance();
     this->setShader(sh);
 }
 
@@ -21,7 +21,7 @@ void BaseSprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool r
 {
     region_=region;
     if(region && resetSize)
-        setSize(region->getSize());
+        setSize(region->getRegionSize());
 }
 void BaseSprite::DrawSelf(Renderer *renderer)
 {

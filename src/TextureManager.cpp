@@ -11,7 +11,7 @@ TextureManager *TextureManager::getInstance()
     }
     return tm_.get();
 }
-Texture2D *Texture2D::create(ResourceManager *manager, const Image &img, const string &name)
+Texture2D *Texture2D::create(ResourceManager *manager, const Image_RGBA8 &img, const string &name)
 {
     auto t = MM<Texture2D>::New();
     t->init(img);
@@ -22,14 +22,14 @@ Texture2D *Texture2D::create(ResourceManager *manager, const Image &img, const s
 
 Texture2D *Texture2D::create(ResourceManager *manager, const string &name)
 {
-    auto img = Image::create(name.c_str());
+    auto img = Image_RGBA8::create(name.c_str());
     if(!img)
         return nullptr;
     //img.reverseY();
     return create(manager, img, name);
 }
 
-void Texture2D::init(const Image &img)
+void Texture2D::init(const Image_RGBA8 &img)
 {
     width_ = img.getWidth();
     height_ = img.getHeight();
@@ -89,20 +89,26 @@ Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(int offx, int offy, int wid
     r->texture_ = Ref_ptr<Texture2D>(this);
     r->tl_ = iVec2(offx, offy);
     r->size_ = toSize(d, width, height);
+    r->init(this, iVec2(offx,offy), iVec2(width,height), d);
     return Ref_ptr<TextureRegion2D>(r);
 }
 Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion()
 {
     if(self)
         return self;
-    auto r = MM<TextureRegion2D>::New();
-    r->texture_ = Ref_ptr<Texture2D>(this);
     auto w = getWidth();
     auto h = getHeight();
-    r->tl_ = iVec2(0,0);
-    r->size_ = iVec2(w,h);
-    self = Ref_ptr<TextureRegion2D>(r);
-    return self;
+
+    auto r = MM<TextureRegion2D>::New();
+    r->init(this, iVec2(0,0), iVec2(w,h), RegionDirection::BOTTOM);
+    r->setDeleteCallback(Texture2D::deleteSelf, this);
+    self = r;
+    return r;
+}
+void Texture2D::deleteSelf(TextureRegion2D *r, void *self)
+{
+    auto t = static_cast<Texture2D*>(self);
+    t->self = nullptr;
 }
 
 Texture2D *TextureManager::loadTexture__(const string &name)

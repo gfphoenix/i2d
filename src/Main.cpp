@@ -4,6 +4,7 @@
 #include <types.hpp>
 #include <stdio.h>
 #include <Scene.hpp>
+#include <Shape.hpp>
 #include <StageLayer.hpp>
 #include <Sprite.hpp>
 #include <Texture.hpp>
@@ -26,7 +27,10 @@ static bool init()
     sprite->setTextureRegion(t->getTextureRegion());
     scene->addChild(sprite);
     Director::getInstance()->run(scene);
-
+    auto line = MM<Line>::New();
+    line->setP0(Vec2(40, 40));
+    line->setP1(Vec2(400, 400));
+    sprite->addChild(line);
     sprite->setPosition(S/2.f);
     {
         auto ml = MM<EventMouseListener>::New();
@@ -56,7 +60,8 @@ static bool init()
                 return out;
                 },"foobar", 3, 1, 17);
         auto life = MM<Sprite>::New();
-        life->setTextureRegion(tm->loadTexture("life.png")->getTextureRegion());
+        life->setTextureRegion(tm->loadTexture("N.png")->getTextureRegion());
+        life->setColor(Color3(.31, .8, .3));
         sprite->addChild(life);
         life->setPosition(300, 300);
         auto rot = RotateBy::create(3, 180);

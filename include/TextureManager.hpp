@@ -39,13 +39,14 @@ class Texture2D final: public Resource
         // GL_LUMINANCE, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA,
         int format_;
         void Dispose()override;
-        void init(const Image &image);
+        void init(const Image_RGBA8 &image);
     protected:
-        Texture2D(){}
+        Texture2D():Resource(),self(nullptr){}
         // should only be accessed by texture-manager
         static Texture2D *create(ResourceManager *manager, const std::string &name);
-        static Texture2D *create(ResourceManager *manager, const Image &image, const std::string &name);
-        Ref_ptr<TextureRegion2D> self;
+        static Texture2D *create(ResourceManager *manager, const Image_RGBA8 &image, const std::string &name);
+        static void deleteSelf(TextureRegion2D *r, void *selfT2d);
+        TextureRegion2D *self;
         friend class TextureManager;
     DECLARE_PLACEMENT
     public:

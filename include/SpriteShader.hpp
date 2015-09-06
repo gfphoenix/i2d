@@ -1,8 +1,10 @@
 #ifndef _DEFAULT_SHADER_HPP
 #define _DEFAULT_SHADER_HPP
+#include "types.hpp"
 #include <Ref.hpp>
 #include <TextureManager.hpp>
 #include <Shader.hpp>
+#include <stack>
 #include <vector>
 #include <VertexUVColor.hpp>
 
@@ -26,17 +28,24 @@ class SpriteShader : public Shader
         // vertex of a rectangle, BL-BR-TL,TR
         std::vector<V2F_T2F_C4F> buffer_;
         std::vector<unsigned short> indices_;
-        std::vector<Color4> colors_;
+        std::stack<Color4> colors_;
+        std::stack<Mat3> transforms_;
     protected:
         friend class Shader;
         void init(GLuint program);
         void initElementIndex(int nRect);
         void prepare(const Texture2D *texture);
     public:
-        void pushColor(const Color4 &c){colors_.push_back(c);}
-        void replaceColor(const Color4 &c){colors_.back()=c;}
-        void popColor(){colors_.pop_back();}
-        const Color4 &getColor4()const{return colors_.back();}
+        void pushColor(const Color4 &c){colors_.push(c);}
+        void replaceColor(const Color4 &c){colors_.top()=c;}
+        void popColor(){colors_.pop();}
+        const Color4 &getColor4()const{return colors_.top();}
+        void pushTransform(const Mat3 &M);
+        void replaceTransform(const Mat3 &M);
+        void pushMulTransform(const Mat3 &M);
+        void popTransform();
+        inline const Mat3 &getTransform()const{return transforms_.top();}
+        inline bool hasTransform()const{return !transforms_.empty();}
 
         virtual void draw(const TextureRegion2D *region);
         virtual void drawOffset(const TextureRegion2D *region, const Vec2 &blXY);
@@ -57,7 +66,10 @@ class SpriteShader : public Shader
         virtual void Flush()override;
         SpriteShader();
         virtual ~SpriteShader();
+        static SpriteShader *getInstance();
+protected:
+        static Ref_ptr<SpriteShader> self;
         void pushData(const Vec2 &xy, const Vec2 &uv, const Color4 &color);
 };
-Shader *getDefaultShader();
+//Shader *getDefaultShader();
 #endif

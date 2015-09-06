@@ -42,38 +42,55 @@ class TextureRegion2D final : public Ref
 {
     private:
         Ref_ptr<Texture2D> texture_;
+        void (*onDestroy)(TextureRegion2D *self, void *data);
+        void *destroyData_;
         // descripted by tl_ and size_.
         // tl_ must non-negative, and size_ must not be zero, negative means rotation
         iVec2 tl_;
         iVec2 size_;
-        TextureRegion2D():Ref(){}
-        inline bool isRotated()const{return size_.x>0 && size_.y>0;}
+        Vec2 uv_tl_;
+        Vec2 uv_br_;
+        TextureRegion2D():Ref()
+        {
+            onDestroy=nullptr;
+            destroyData_=nullptr;
+        }
+
         //DEL_COPY(TextureRegion2D);
         friend class Texture2D;
         friend class TextureAtlas;
 
 	template <typename _tp>
 	friend class MM;
+
+protected:
+    virtual void Delete()override;
+    virtual void setDeleteCallback(void (*fn)(TextureRegion2D *self,void*data), void*data);
+    void init(Texture2D *tex, const iVec2 &tl, const iVec2 &size, RegionDirection dir);
     public:
+        // when remove, call ondestroy if set
+    inline bool isRotated()const{return size_.x<0 || size_.y<0;}
         virtual const std::string getInfo()const{
             char tmp[64];
             snprintf(tmp, sizeof(tmp), "texture-region mother=%p ", texture_.get());
             return std::string(tmp);
         }
         TextureRegion2D(TextureRegion2D &&region);
-        inline const Ref_ptr<Texture2D> getTexture2D()const{return texture_;}
+        inline const Ref_ptr<Texture2D> &getTexture2D()const{return texture_;}
+        inline const Vec2 &getUVtl()const{return uv_tl_;}
+        inline const Vec2 &getUVbr()const{return uv_br_;}
         UV getUV()const;
         void getUV(Vec2 &bl, Vec2 &br, Vec2 &tl, Vec2 &tr)const;
         UVi getUVi()const;
-        inline int getWidth()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.y):std::abs(size_.x);}
-        inline int getHeight()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.x):std::abs(size_.y);}
-        inline iVec2 getSize()const{
+        inline int getRegionWidth()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.y):std::abs(size_.x);}
+        inline int getRegionHeight()const{return ((size_.x<0)^(size_.y<0))?std::abs(size_.x):std::abs(size_.y);}
+        inline iVec2 getRegionSize()const{
             auto w=std::abs(size_.x);
             auto h=std::abs(size_.y);
             return (size_.x<0)^(size_.y<0) ? iVec2(h,w) : iVec2(w,h);
         }
         RegionDirection getRegionDirection()const;
-        Ref_ptr<TextureRegion2D> getSubRegion(int offx, int offy, int width, int height)const;
+        Ref_ptr<TextureRegion2D> getSubRegion(int offx, int offy, int width, int height, RegionDirection dir)const;
 };
 #include <gl>
 enum class Filter

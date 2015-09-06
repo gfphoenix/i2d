@@ -7,50 +7,48 @@
 #include <mm.hpp>
 #include <gl>
 #include <vector>
-static Shader *shader_=nullptr;
-
 #define GLSL(src) "\n" #src
 static const GLchar* vSrc = GLSL(
-        attribute vec2 vertexPosition_model;
-        attribute vec2 vertexUV;
-        attribute vec4 vertexColor;
-        varying vec2 myUV;
-        varying vec4 myColor;
-        uniform mat4 myPV;
-        void main(){
-        gl_Position =  myPV * vec4(vertexPosition_model, 0, 1);
-        myUV = vertexUV;
-        myColor = vertexColor;
-        }
-        );
+attribute vec2 vertexPosition_model;
+attribute vec2 vertexUV;
+attribute vec4 vertexColor;
+varying vec2 myUV;
+varying vec4 myColor;
+uniform mat4 myPV;
+void main(){
+gl_Position =  myPV * vec4(vertexPosition_model, 0, 1);
+myUV = vertexUV;
+myColor = vertexColor;
+}
+);
 
 static const GLchar *fSrc = GLSL(
 #ifdef GL_ES
-        precision lowp float;
+precision lowp float;
 #endif
-        varying vec2 myUV;
-        varying vec4 myColor;
-        uniform sampler2D mySampler2D;
-        void main(){
-        vec4 tmp = myColor * texture2D(mySampler2D, myUV);
-        gl_FragColor = clamp(tmp, 0.0, 1.0);
-        }
-        );
-//Shader *dShader::shader_=nullptr;
-Shader *Shader::getDefaultShader()
+varying vec2 myUV;
+varying vec4 myColor;
+uniform sampler2D mySampler2D;
+void main(){
+vec4 tmp = myColor * texture2D(mySampler2D, myUV);
+gl_FragColor = clamp(tmp, 0.0, 1.0);
+}
+);
+Ref_ptr<SpriteShader> SpriteShader::self=nullptr;
+SpriteShader *SpriteShader::getInstance()
 {
-    if(shader_ != nullptr)
-        return shader_;
-    //auto id = Shader::loadStrings(vsrc, fsrc);
-    //auto id = Shader::loadFiles("defVertShader.shader", "defFragShader.shader");
-    //auto id = Shader::loadFiles("V2F_T2F_C4F_vert.es2.0", "V2F_T2F_C4F_frag.es2.0");
-    auto id = Shader::loadStrings(vSrc, fSrc);
-    if(id==0)
-        return nullptr;
-    auto sh = MM<SpriteShader>::New();
-    sh->init(id);
-    shader_ = sh;
-    return sh;
+    if(!self){
+        //auto id = Shader::loadStrings(vsrc, fsrc);
+        //auto id = Shader::loadFiles("defVertShader.shader", "defFragShader.shader");
+        //auto id = Shader::loadFiles("V2F_T2F_C4F_vert.es2.0", "V2F_T2F_C4F_frag.es2.0");
+        auto id = Shader::loadStrings(vSrc, fSrc);
+        if(id==0)
+            return nullptr;
+        auto sh = MM<SpriteShader>::New();
+        sh->init(id);
+        self = sh;
+    }
+    return self.get();
 }
 
 SpriteShader::SpriteShader():
@@ -58,8 +56,7 @@ SpriteShader::SpriteShader():
     , vbo_(0)
     , elementBuffer_(0)
     , lastTexture_(nullptr)
-    , colors_({{Color4(1,1,1,1)}})
-{}
+{colors_.push(Color4(1,1,1,1));}
 // number of N rectangles
 void SpriteShader::initElementIndex(int N)
 {
@@ -106,6 +103,29 @@ SpriteShader::~SpriteShader()
     vbo_ = 0;
     elementBuffer_=0;
 }
+void SpriteShader::pushTransform(const Mat3 &M)
+{
+    Flush();
+    transforms_.push(M);
+}
+void SpriteShader::replaceTransform(const Mat3 &M)
+{
+    Flush();
+    transforms_.top() = M;
+}
+
+void SpriteShader::pushMulTransform(const Mat3 &M)
+{
+    Flush();
+    auto const &top = transforms_.top();
+    transforms_.push(top * M);
+}
+void SpriteShader::popTransform()
+{
+    Flush();
+    transforms_.pop();
+}
+
 void SpriteShader::prepare(const Texture2D *texture)
 {
     if(lastTexture_ != texture){
@@ -130,7 +150,7 @@ void SpriteShader::draw(const TextureRegion2D *region)
     region->getUV(p0.t, p1.t, p2.t, p3.t);
     p0.c = p1.c = p2.c = p3.c = cc;
 
-    auto sz = region->getSize();
+    auto sz = region->getRegionSize();
     p0.v = Vec2(0,0);
     p1.v = Vec2(sz.x, 0);
     p2.v = Vec2(0, sz.y);
@@ -150,7 +170,7 @@ void SpriteShader::drawOffset(const TextureRegion2D *region, const Vec2 &blXY)
     region->getUV(p0.t, p1.t, p2.t, p3.t);
     p0.c = p1.c = p2.c = p3.c = cc;
 
-    auto sz = region->getSize();
+    auto sz = region->getRegionSize();
     p0.v = blXY;
     p1.v = Vec2(blXY.x + sz.x, blXY.y);
     p2.v = Vec2(blXY.x, blXY.y+sz.y);
@@ -226,7 +246,7 @@ void SpriteShader::draw(const Mat3 &transform, const TextureRegion2D *region)
     region->getUV(p0.t, p1.t, p2.t, p3.t);
     p0.c = p1.c = p2.c = p3.c = cc;
 
-    auto sz = region->getSize();
+    auto sz = region->getRegionSize();
     auto aw = transform[0][0] * sz.x;
     auto bw = transform[0][1] * sz.x;
     auto ch = transform[1][0] * sz.y;
@@ -250,7 +270,7 @@ void SpriteShader::drawOffset(const Mat3 &transform, const TextureRegion2D *regi
     region->getUV(p0.t, p1.t, p2.t, p3.t);
     p0.c = p1.c = p2.c = p3.c = cc;
 
-    auto sz = region->getSize();
+    auto sz = region->getRegionSize();
     auto ps = transform * Mat4x3(
             Vec3(blXY,1), Vec3(blXY.x+sz.x, blXY.y, 1),
             Vec3(blXY.x, blXY.y+sz.y, 1),
@@ -388,7 +408,17 @@ void SpriteShader::Flush()
     // Send our transformation to the currently bound shader, 
     // in the "MVP" uniform
     auto const &pv = renderer->getCamera().getPV();
-    glUniformMatrix4fv(pv_, 1, GL_FALSE, &pv[0][0]);
+    if(hasTransform()){
+        //m[0][2],m[1][2] is always 0
+        auto const &m = getTransform();
+        auto pv2 = pv * Mat4(Vec4(m[0][0],m[0][1],0,m[0][2]),
+                Vec4(m[1][0],m[1][1],0,m[1][2]),
+                Vec4(0,0,1,0),
+                Vec4(m[2][0],m[2][1],0,m[2][2]));
+        glUniformMatrix4fv(pv_, 1, GL_FALSE, &pv2[0][0]);
+    }else{
+        glUniformMatrix4fv(pv_, 1, GL_FALSE, &pv[0][0]);
+    }
     CheckGL();
 
     glEnable(GL_TEXTURE_2D);

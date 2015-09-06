@@ -9,7 +9,7 @@ class Shader : public Ref {
     public:
         static GLuint loadStrings(const char *vertexString, const char *fragString);
         static GLuint loadFiles(const char *vertexFile, const char *fragFile);
-        static Shader *getDefaultShader();
+
         inline void Use()const{glUseProgram(id_);}
         inline GLint getAttribLocation(const GLchar *name)const{
             return glGetAttribLocation(id_, name);
