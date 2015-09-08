@@ -488,7 +488,7 @@ void PrimitiveShader::Flush()
     CheckGL();
     glEnable(GL_PROGRAM_POINT_SIZE);
     glDrawArrays((GLenum)drawMode_, 0, buffer_.size());
-    //glDisable(GL_PROGRAM_POINT_SIZE);
+    glDisable(GL_PROGRAM_POINT_SIZE);
     CheckGL();
 
     glDisableVertexAttribArray(model_xy_);

@@ -22,6 +22,9 @@ class TextureManager final : public ResourceManager
 	static Ref_ptr<TextureManager> tm_;
     public:
 	static TextureManager *getInstance();
+    Ref_ptr<Texture2D> getTexture(const std::string &name);
+
+//protected:
         Ref_ptr<Resource> loadResource(const std::string &name)override;
         Ref_ptr<Texture2D> loadTexture(const std::string &name);
         Ref_ptr<TextureAtlas> loadTextureAtlas(const std::string &name);

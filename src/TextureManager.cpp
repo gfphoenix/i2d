@@ -11,12 +11,17 @@ TextureManager *TextureManager::getInstance()
     }
     return tm_.get();
 }
+Ref_ptr<Texture2D> TextureManager::getTexture(const std::string &name)
+{
+    auto res = get(name);
+    return Ref_ptr<Texture2D>(dynamic_cast<Texture2D*>(res.get()));
+}
 Texture2D *Texture2D::create(ResourceManager *manager, const Image_RGBA8 &img, const string &name)
 {
     auto t = MM<Texture2D>::New();
     t->init(img);
     t->setResourceManager(manager);
-    t->setName(name);
+    t->setResourceName(name);
     return t;
 }
 
@@ -86,9 +91,6 @@ Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(int offx, int offy, int wid
     if(height==0 || offy+height>height_)
         height = height_ - offy;
     auto r = MM<TextureRegion2D>::New();
-    r->texture_ = Ref_ptr<Texture2D>(this);
-    r->tl_ = iVec2(offx, offy);
-    r->size_ = toSize(d, width, height);
     r->init(this, iVec2(offx,offy), iVec2(width,height), d);
     return Ref_ptr<TextureRegion2D>(r);
 }

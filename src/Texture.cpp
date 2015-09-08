@@ -26,7 +26,7 @@ void TextureRegion2D::Delete()
 // size is a positive integer pair
 void TextureRegion2D::init(Texture2D *tex, const iVec2 &tl, const iVec2 &size, RegionDirection dir)
 {
-    texture_ = tex;
+    this->texture_ = tex;
     this->tl_ = tl;
     float w = tex->getWidth();
     float h = tex->getHeight();
@@ -225,6 +225,6 @@ TextureAtlas *TextureAtlas::create(const string &atlasName)
 {
     auto ta = create(parseAtlasConfig(atlasName));
     ta->setResourceManager(TextureManager::getInstance());
-    ta->setName(atlasName);
+    ta->setResourceName(atlasName);
     return ta;
 }
