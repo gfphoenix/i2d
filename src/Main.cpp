@@ -39,7 +39,6 @@ static bool init()
             auto local = sprite->toLocal(p);
             if(!sprite->hit(local))
                 return false;
-            auto w = sprite->toWorld(0,0);
             R1 = e->getCursorWorld();
             oldPos = sprite->getPosition();
             printf("R1(%f, %f), oldPos(%f, %f)\n", R1.x, R1.y, oldPos.x, oldPos.y);
@@ -48,7 +47,6 @@ static bool init()
         ml->onMove = [sprite](EventMouse *e){
             auto w = e->getCursorWorld();
             auto dxy = w - R1;
-//            printf("oldPos(%f,%f), w(%f, %f), dxy(%f, %f)\n", oldPos.x, oldPos.y, w.x, w.y, dxy.x, dxy.y);
             sprite->setPosition(oldPos+dxy);
         };
         sprite->addEventListener(ml);
@@ -90,7 +88,6 @@ static bool init()
             default:
                 break;
             }
-
             return true;
         };
         l->onRelease = [](EventKeyboard *e){

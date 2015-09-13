@@ -9,7 +9,7 @@ class ResourceManager;
 class Resource : public Ref
 {
     public:
-        inline const std::string &getResourceName()const{return name_;}
+        inline const std::string &getName()const{return name_;}
     protected:
         Resource():Ref(),manager_(nullptr){}
         virtual ~Resource(){}
@@ -29,16 +29,14 @@ class ResourceManager : public Ref
 {
     public:
         //Make it virtual, so sub-class can do more things
-    // return an existing resource or load(sync) and return
         virtual Ref_ptr<Resource> get(const std::string &name);
-        bool isLoaded(const std::string &name)const{return map_.find(name)!=map_.cend();}
+        bool isLoad(const std::string &name)const{return map_.find(name)!=map_.cend();}
     protected:
 	ResourceManager(){}
         virtual ~ResourceManager(){}
-    // do real sync loading work, dirty work
         virtual Ref_ptr<Resource> loadResource(const std::string &name)=0;
-        void unlink(const Resource *const res);
-        void link(Resource *const res);
+        void unlink(const Resource *res);
+        void link(Resource *res);
         friend class Resource;
         typedef std::unordered_map<std::string, Resource*, std::hash<string>> Map_t;
 	Map_t map_;

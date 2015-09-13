@@ -23,25 +23,26 @@ Ref_ptr<Resource> ResourceManager::get(const string &name)
         return Ref_ptr<Resource>(x->second);
     auto res = loadResource(name);
     if(res){
-        link(res.get());
         res->setResourceManager(this);
         res->setResourceName(name);
+        link(res.get());
     }
+    printf("RM::get(%s)=%p\n", name.c_str(), res.get());
     return res;
 }
 
 void ResourceManager::link(Resource *const res)
 {
-    auto const &name = res->getResourceName();
-    {//debug
-    auto x = map_.find(name);
-    Assert(x==map_.cend(), "ResourceManager::link to an existed Resource");
+    auto const &name = res->getName();
+    {
+        auto x = map_.find(name);
+        Assert(x==map_.cend(), "ResourceManager::link to an existed Resource");
     }
     map_[name] = res;
 }
 void ResourceManager::unlink(const Resource *const res)
 {
-    auto x = map_.find(res->getResourceName());
+    auto x = map_.find(res->getName());
     if(x != map_.cend())
         map_.erase(x);
 }

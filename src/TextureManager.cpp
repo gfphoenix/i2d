@@ -6,15 +6,9 @@
 Ref_ptr<TextureManager> TextureManager::tm_ = nullptr;
 TextureManager *TextureManager::getInstance()
 {
-    if(tm_==nullptr){
+    if(tm_==nullptr)
         tm_ = MM<TextureManager>::New();
-    }
     return tm_.get();
-}
-Ref_ptr<Texture2D> TextureManager::getTexture(const std::string &name)
-{
-    auto res = get(name);
-    return Ref_ptr<Texture2D>(dynamic_cast<Texture2D*>(res.get()));
 }
 Texture2D *Texture2D::create(ResourceManager *manager, const Image_RGBA8 &img, const string &name)
 {
@@ -22,6 +16,7 @@ Texture2D *Texture2D::create(ResourceManager *manager, const Image_RGBA8 &img, c
     t->init(img);
     t->setResourceManager(manager);
     t->setResourceName(name);
+    printf("T2d=%p\n", t);
     return t;
 }
 
@@ -30,7 +25,6 @@ Texture2D *Texture2D::create(ResourceManager *manager, const string &name)
     auto img = Image_RGBA8::create(name.c_str());
     if(!img)
         return nullptr;
-    //img.reverseY();
     return create(manager, img, name);
 }
 
@@ -66,6 +60,7 @@ void Texture2D::Dispose()
     ::glDeleteTextures(1, &id_);
     id_=0;
 }
+/*
 static iVec2 toSize(RegionDirection d, int w, int h)
 {
     switch(d){
@@ -82,6 +77,7 @@ static iVec2 toSize(RegionDirection d, int w, int h)
     }
     return iVec2();
 }
+*/
 Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(int offx, int offy, int width, int height, RegionDirection d)
 {
     Assert(offx>=0 && offy>=0 && width>=0 && height>=0, "Texture2D::getTextureRegion : all param must >=0");
@@ -94,7 +90,7 @@ Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(int offx, int offy, int wid
     r->init(this, iVec2(offx,offy), iVec2(width,height), d);
     return Ref_ptr<TextureRegion2D>(r);
 }
-Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion()
+Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(RegionDirection dir)
 {
     if(self)
         return self;
@@ -102,12 +98,13 @@ Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion()
     auto h = getHeight();
 
     auto r = MM<TextureRegion2D>::New();
-    r->init(this, iVec2(0,0), iVec2(w,h), RegionDirection::BOTTOM);
+    r->init(this, iVec2(0,0), iVec2(w,h), dir);
     r->setDeleteCallback(Texture2D::deleteSelf, this);
     self = r;
     return r;
 }
-void Texture2D::deleteSelf(TextureRegion2D *r, void *self)
+// delete self texture region
+void Texture2D::deleteSelf(TextureRegion2D *, void *self)
 {
     auto t = static_cast<Texture2D*>(self);
     t->self = nullptr;
@@ -117,41 +114,38 @@ Texture2D *TextureManager::loadTexture__(const string &name)
 {
     Assert(map_.find(name) == map_.cend(), "BUG: Thread problem, exist Texture2D before loadTexture__");
     auto t = Texture2D::create(this, name);
-    if(t != nullptr)
-        link(t);
     return t;
 }
 Ref_ptr<Texture2D> TextureManager::loadTexture(const string &name)
 {
-    auto x = map_.find(name);
-    if(x!=map_.cend())
-        return Ref_ptr<Texture2D>(static_cast<Texture2D*>(x->second));
-    return loadTexture__(name);
+    auto x = get(name);
+    auto p = x.get();
+    auto t = dynamic_cast<Texture2D*>(p);
+    return (t);
 }
-TextureAtlas *TextureManager::loadTextureAtlas__(const string &name)
+TextureAtlas *TextureManager::loadTextureAtlas__(const std::string &name)
 {
     Assert(map_.find(name) == map_.cend(), "BUG: Thread problem, exist resource before loadTextureAtlas__");
     auto ta = TextureAtlas::create(name);
-    if(ta != nullptr)
-        link(ta);
     return ta;
 }
-Ref_ptr<TextureAtlas> TextureManager::loadTextureAtlas(const string &name)
+Ref_ptr<TextureAtlas> TextureManager::loadTextureAtlas(const std::string &name)
 {
-    auto x = map_.find(name);
-    if(x!=map_.cend())
-        return Ref_ptr<TextureAtlas>(static_cast<TextureAtlas*>(x->second));
-    return loadTextureAtlas__(name);
+    auto x = get(name);
+    auto p = x.get();
+    auto ta = dynamic_cast<TextureAtlas*>(p);
+    return ta;
 }
-// load texture or texture-atlas
-Ref_ptr<Resource> TextureManager::loadResource(const string &name)
+// do loading job : load texture or texture-atlas
+Ref_ptr<Resource> TextureManager::loadResource(const std::string &name)
 {
     if(name.size()<1)
         return Ref_ptr<Resource>();
-    auto x = map_.find(name);
-    if(x != map_.cend())
-        return Ref_ptr<Resource>(x->second);
-    auto n = name.size() - name.rfind(".atlas");
-    Resource *res = n==6 ? static_cast<Resource*>(loadTextureAtlas__(name)) : static_cast<Resource*>(loadTexture__(name));
-    return Ref_ptr<Resource>(res);
+    //auto x = map_.find(name);
+    //if(x != map_.cend())
+    //    return Ref_ptr<Resource>(x->second);
+    auto n = name.size();
+    if(n>6 && name.compare(n-6, 6, ".atlas")==0)
+        return loadTextureAtlas__(name);
+    return loadTexture__(name);
 }

@@ -14,15 +14,7 @@ class Texture2D;
 class TextureRegion2D;
 class TextureAtlas;
 
-// region direction, the bottom direction
-enum class RegionDirection
-{
-    BOTTOM = 0,
-    RIGHT,
-    LEFT,
-    TOP,
-    INVALID,
-};
+enum class RegionDirection;
 // 4 point in texture, and its order is:
 // [0] -> BL, [1] -> BR, [2] -> TL, [3] -> TR
 struct UV
@@ -34,6 +26,55 @@ struct UVi
     iVec2 uv[4];
 };
 
+// region direction, the bottom direction
+enum class RegionDirection
+{
+    BOTTOM = 0,
+    RIGHT,
+    LEFT,
+    TOP,
+};
+#include <gl>
+enum class Filter
+{
+};
+enum class Wrap
+{
+};
+// when texture2d is created, it(std::shared_ptr<Texture2D>) is owned by assetmanager.
+// then users can hold or release the resources safely
+class Texture2D final: public Resource
+{
+    private:
+        GLuint id_;
+        int width_;
+        int height_;
+        // GL_LUMINANCE, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA,
+        int format_;
+        void Dispose()override;
+        void init(const Image_RGBA8 &image);
+    protected:
+        Texture2D():Resource(),self(nullptr){}
+        // should only be accessed by texture-manager
+        static Texture2D *create(ResourceManager *manager, const std::string &name);
+        static Texture2D *create(ResourceManager *manager, const Image_RGBA8 &image, const std::string &name);
+        static void deleteSelf(TextureRegion2D *r, void *selfT2d);
+        TextureRegion2D *self;
+        friend class TextureManager;
+    DECLARE_PLACEMENT
+    public:
+        const std::string getInfo()const override{return std::string("texture2d");}
+        inline int getWidth()const{return width_;}
+        inline int getHeight()const{return height_;}
+        inline int   getFormat()const{return format_;}
+        inline GLuint  getId()const{return id_;}
+
+        // origin point is at top left
+        Ref_ptr<TextureRegion2D> getTextureRegion(int offx, int offy, int width, int height, RegionDirection dir);
+        Ref_ptr<TextureRegion2D> getTextureRegion(RegionDirection dir=RegionDirection::BOTTOM);
+        inline void bind()const{::glBindTexture(GL_TEXTURE_2D, id_);}
+        inline void unbind()const{::glBindTexture(GL_TEXTURE_2D,0);}
+};
 // Only can be created by TextureRegion2D::getSubRegion() or Texture2D::getTextureRegion(), or
 // indirectly created by TextureAtlas::getTextureRegion(), which uses Texture2d::getTextureRegion
 // internally.
@@ -89,16 +130,11 @@ protected:
             auto h=std::abs(size_.y);
             return (size_.x<0)^(size_.y<0) ? iVec2(h,w) : iVec2(w,h);
         }
+        inline iVec2 getRectSize()const{return iVec2(std::abs(size_.x),std::abs(size_.y));}
         RegionDirection getRegionDirection()const;
         Ref_ptr<TextureRegion2D> getSubRegion(int offx, int offy, int width, int height, RegionDirection dir)const;
 };
-#include <gl>
-enum class Filter
-{
-};
-enum class Wrap
-{
-};
+
 struct Item 
 {
     std::string name; // texture region name in .atlas file
