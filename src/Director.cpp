@@ -124,6 +124,8 @@ void Director::mainLoop()
         onDraw();
         view_->swapBuffer();
     }
+    running_ = false;
+    Director::director_=nullptr;
 }
 void Director::onDraw()
 {

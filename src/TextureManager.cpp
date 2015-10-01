@@ -141,9 +141,6 @@ Ref_ptr<Resource> TextureManager::loadResource(const std::string &name)
 {
     if(name.size()<1)
         return Ref_ptr<Resource>();
-    //auto x = map_.find(name);
-    //if(x != map_.cend())
-    //    return Ref_ptr<Resource>(x->second);
     auto n = name.size();
     if(n>6 && name.compare(n-6, 6, ".atlas")==0)
         return loadTextureAtlas__(name);

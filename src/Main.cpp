@@ -143,6 +143,41 @@ static bool init()
     return true;
 }
 
+static bool init2()
+{
+    auto scene = MM<Scene>::New(S);
+    auto sprite = MM<Sprite>::New();
+    auto tm = TextureManager::getInstance();
+    auto t = tm->loadTexture("map.png");
+    sprite->setTextureRegion(t->getTextureRegion());
+    scene->addChild(sprite);
+    Director::getInstance()->run(scene);
+
+    auto sz = scene->getDesignSize();
+    sprite->setPosition(sz/2.f);
+    {
+        auto ml = MM<EventMouseListener>::New();
+        ml->onPress = [sprite](EventMouse *e){
+            auto p = e->getCursorWorld();
+            auto local = sprite->toLocal(p);
+            if(!sprite->hit(local))
+                return false;
+            R1 = e->getCursorWorld();
+            oldPos = sprite->getPosition();
+            printf("R1(%f, %f), oldPos(%f, %f)\n", R1.x, R1.y, oldPos.x, oldPos.y);
+            return true;
+        };
+        ml->onMove = [sprite](EventMouse *e){
+            auto w = e->getCursorWorld();
+            auto dxy = w - R1;
+            sprite->setPosition(oldPos+dxy);
+            printf("new pos=(%f, %f)\n", sprite->getX(), sprite->getY());
+        };
+        sprite->addEventListener(ml);
+    }
+    return true;
+}
+
 int main()
 {
     auto app = App::getInstance();

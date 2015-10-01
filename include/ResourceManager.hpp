@@ -9,20 +9,20 @@ class ResourceManager;
 class Resource : public Ref
 {
     public:
-        inline const std::string &getName()const{return name_;}
+        inline const std::string &getResourceName()const{return resName_;}
     protected:
         Resource():Ref(),manager_(nullptr){}
         virtual ~Resource(){}
         virtual void Dispose()=0;
         virtual void Delete()override;
         inline void setResourceManager(ResourceManager *manager){manager_=manager;}
-        inline void setResourceName(std::string &&name){name_=std::move(name);}
-        inline void setResourceName(const std::string &name){name_=name;}
+        inline void setResourceName(std::string &&name){resName_=std::move(name);}
+        inline void setResourceName(const std::string &name){resName_=name;}
         friend class ResourceManager;
     private:
         // init is called by resource-manager
         ResourceManager *manager_;
-        std::string name_;
+        std::string resName_;
 };
 // resource manager should be a singleton
 class ResourceManager : public Ref
