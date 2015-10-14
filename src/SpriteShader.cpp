@@ -16,9 +16,9 @@ varying vec2 myUV;
 varying vec4 myColor;
 uniform mat4 myPV;
 void main(){
-gl_Position =  myPV * vec4(vertexPosition_model, 0, 1);
-myUV = vertexUV;
-myColor = vertexColor;
+gl_Position=myPV*vec4(vertexPosition_model,0,1);
+myUV=vertexUV;
+myColor=vertexColor;
 }
 );
 
@@ -30,8 +30,20 @@ varying vec2 myUV;
 varying vec4 myColor;
 uniform sampler2D mySampler2D;
 void main(){
-vec4 tmp = myColor * texture2D(mySampler2D, myUV);
-gl_FragColor = clamp(tmp, 0.0, 1.0);
+vec4 tmp=myColor*texture2D(mySampler2D,myUV);
+gl_FragColor=clamp(tmp,0.0,1.0);
+}
+);
+static const GLchar *fSrcAlpha = GLSL(
+#ifdef GL_ES
+precision lowp float;
+#endif
+varying vec2 myUV;
+varying vec4 myColor;
+uniform sampler2D mySampler2D;
+void main(){
+vec4 tmp=myColor*texture2D(mySampler2D,myUV).a;
+gl_FragColor=clamp(tmp,0.0,1.0);
 }
 );
 Ref_ptr<SpriteShader> SpriteShader::self=nullptr;
@@ -117,8 +129,10 @@ void SpriteShader::replaceTransform(const Mat3 &M)
 void SpriteShader::pushMulTransform(const Mat3 &M)
 {
     Flush();
-    auto const &top = transforms_.top();
-    transforms_.push(top * M);
+    if(transforms_.empty())
+        transforms_.push(M);
+    else
+        transforms_.push(transforms_.top() * M);
 }
 void SpriteShader::popTransform()
 {

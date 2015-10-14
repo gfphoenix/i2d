@@ -63,11 +63,11 @@ Ref_ptr<TextureRegion2D> TextureRegion2D::getSubRegion(int offx, int offy, int w
             "Negative param in TextureRegion2D::getSubRegion()");
     Assert(offx<w && offy<h,
             "offset is larger than region size");
-    if(width==0 || offx+width>w){
+    if(offx+width>w){
         Debug("too large size in TextureRegion2D::getSubRegion\n");
         width = w - offx;
     }
-    if(height==0 || offy+height>h){
+    if(offy+height>h){
         Debug("too large size in TextureRegion2D::getSubRegion\n");
         height = h - offy;
     }

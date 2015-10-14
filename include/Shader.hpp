@@ -7,9 +7,11 @@ class Node;
 class Renderer;
 class Shader : public Ref {
     public:
+        static GLuint compileShader(GLenum type, const char *src);
+        static GLuint linkShader(GLuint s1, GLuint s2);
+
         static GLuint loadStrings(const char *vertexString, const char *fragString);
         static GLuint loadFiles(const char *vertexFile, const char *fragFile);
-
         inline void Use()const{glUseProgram(id_);}
         inline GLint getAttribLocation(const GLchar *name)const{
             return glGetAttribLocation(id_, name);
@@ -38,6 +40,7 @@ class Shader : public Ref {
         friend class Renderer;
 	Shader();
 	Shader(GLuint id):id_(id){}
+
     inline void setRenderer(Renderer *renderer){renderer_=renderer;}
     inline Renderer *getRenderer()const{return renderer_;}
     inline void setProgramId(GLuint id){id_=id;}

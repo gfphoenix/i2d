@@ -29,9 +29,8 @@ all input handler is registered by attaching a specific event listener to an exi
 
 
 # TO DO NEXT:
-1. point transformation between nodes (done)
-2. defaultShader : should design a new api to easily draw more objects in a single node
-3. re-design Sprite
-4. multi-thread and async loading files
-5. font.
-6. more...
+1. Pen and Brush to help primitive drawing
+2. Abstract File API
+3. Enhance event handler
+4. Review code and fix bugs
+5. more...

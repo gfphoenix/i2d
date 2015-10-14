@@ -9,7 +9,7 @@ class MM
 public:
     static inline void * Malloc(){return malloc(sizeof(tp));}
     static inline void Free(const tp *ptr){free((void*)ptr);}
-    static inline void Del(tp *ptr){ptr->~tp();Free(ptr);}
+    static inline void Del(tp *ptr){if(ptr){ptr->~tp();Free(ptr);}}
     static inline tp * New(){return new(Malloc())tp();}
     template <typename ... _Args>
     static inline tp * New(_Args&&...args)

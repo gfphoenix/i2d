@@ -34,25 +34,27 @@ public:
     virtual void DrawSelf(Renderer *renderer)override;
 };
 
-class Sprite : public BaseSprite
+class Sprite : public LightSprite
 {
     protected:
         //V224_Quad quad_;
         bool flipX_;
         bool flipY_;
 
-        void setFlipX__();
-        void setFlipY__();
+        void updateFlip__();
+        void updateFlip();
         virtual ~Sprite();
     public:
         Sprite();
         Sprite(const Ref_ptr<TextureRegion2D> &region);
-        virtual void DrawSelf(Renderer *scene)override;
+        //virtual void DrawSelf(Renderer *scene)override;
+        virtual void setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize=true)override;
+
         // flip
-        inline void setFlipX(){flipX_=true;setFlipX__();}
-        inline void setFlipY(){flipY_=true;setFlipY__();}
-        inline void toggleFlipX(){flipX_=!flipX_;setFlipX__();}
-        inline void toggleFlipY(){flipY_=!flipY_;setFlipY__();}
+        inline void setFlipX(bool flipX){flipX_=flipX;updateFlip();}
+        inline void setFlipY(bool flipY){flipY_=flipY;updateFlip();}
+        inline void toggleFlipX(){flipX_=!flipX_;updateFlip();}
+        inline void toggleFlipY(){flipY_=!flipY_;updateFlip();}
         inline bool isFlippedX()const{return flipX_;}
         inline bool isFlippedY()const{return flipY_;}
 };

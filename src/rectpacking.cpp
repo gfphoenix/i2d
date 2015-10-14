@@ -227,7 +227,7 @@ Rect2 Pack2::_findPositionForNewNodeBottomLeft (int width, int height, bool rota
 }
 Rect2 Pack2::_findPositionForNewNodeBestShortSideFit (int width, int height, bool rotate) {
     Rect2 bestNode;
-    bestNode.score1 = INTMAX_MAX;
+    bestNode.score1 = INT32_MAX;
 
     for (auto &x : freeRects) {
         // Try to place the rectangle in upright (non-rotated) orientation.
@@ -272,7 +272,7 @@ Rect2 Pack2::_findPositionForNewNodeBestShortSideFit (int width, int height, boo
 }
 Rect2 Pack2::_findPositionForNewNodeBestLongSideFit (int width, int height, bool rotate) {
     Rect2 bestNode;
-    bestNode.score2 = INTMAX_MAX;
+    bestNode.score2 = INT32_MAX;
     int rotatedWidth=height;
     int rotatedHeight=width;
     for (auto x : freeRects) {

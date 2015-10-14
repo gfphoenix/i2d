@@ -1,8 +1,9 @@
 #include <Ref.hpp>
+#include <BMFontSet.hpp>
 #include <Texture.hpp>
 #include <TextureManager.hpp>
 #include <mm.hpp>
-
+#include <string.h>
 Ref_ptr<TextureManager> TextureManager::tm_ = nullptr;
 TextureManager *TextureManager::getInstance()
 {
@@ -34,7 +35,8 @@ void Texture2D::init(const Image_RGBA8 &img)
     height_ = img.getHeight();
     switch(img.getCompType()){
         case CompType::LUMINANCE:
-            format_ = GL_LUMINANCE; break;
+            format_ = GL_ALPHA; break;
+//            format_ = GL_LUMINANCE; break;
         case CompType::LUMINANCE_ALPHA:
             format_ = GL_LUMINANCE_ALPHA; break;
         case CompType::RGB:
@@ -82,9 +84,9 @@ Ref_ptr<TextureRegion2D> Texture2D::getTextureRegion(int offx, int offy, int wid
 {
     Assert(offx>=0 && offy>=0 && width>=0 && height>=0, "Texture2D::getTextureRegion : all param must >=0");
     Assert(offx<width_ && offy<height_, "too large for offset");
-    if(width==0 || offx+width>width_)
+    if(offx+width>width_)
         width = width_ - offx;
-    if(height==0 || offy+height>height_)
+    if(offy+height>height_)
         height = height_ - offy;
     auto r = MM<TextureRegion2D>::New();
     r->init(this, iVec2(offx,offy), iVec2(width,height), d);
@@ -136,13 +138,30 @@ Ref_ptr<TextureAtlas> TextureManager::loadTextureAtlas(const std::string &name)
     auto ta = dynamic_cast<TextureAtlas*>(p);
     return ta;
 }
+BMFontSet *TextureManager::loadBMFontSet__(const std::string &name)
+{
+    return BMFontSet::load(name.c_str());
+}
+Ref_ptr<BMFontSet> TextureManager::loadBMFontSet(const std::string &name)
+{
+    auto x = get(name);
+    auto p = x.get();
+    return dynamic_cast<BMFontSet*>(p);
+}
+
 // do loading job : load texture or texture-atlas
 Ref_ptr<Resource> TextureManager::loadResource(const std::string &name)
 {
     if(name.size()<1)
         return Ref_ptr<Resource>();
-    auto n = name.size();
-    if(n>6 && name.compare(n-6, 6, ".atlas")==0)
+    auto s = name.c_str();
+    auto p = strrchr(s, '.');
+    if(!p)
+        return nullptr;
+
+    if(!strcmp(p, ".atlas"))
         return loadTextureAtlas__(name);
+    if(!strcmp(p, ".fnt"))
+        return loadBMFontSet__(name);
     return loadTexture__(name);
 }

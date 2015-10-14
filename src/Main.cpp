@@ -1,10 +1,11 @@
 #include <App.hpp>
+#include <BMFont.hpp>
+#include <BMFontSet.hpp>
 #include <Director.hpp>
 #include <EventListener.hpp>
 #include <types.hpp>
 #include <stdio.h>
 #include <Scene.hpp>
-#include <Shape.hpp>
 #include <StageLayer.hpp>
 #include <Sprite.hpp>
 #include <Texture.hpp>
@@ -22,16 +23,15 @@ static bool init()
 {
     auto scene = MM<Scene>::New(S);
     auto sprite = MM<Sprite>::New();
+    sprite->setFlipX(true);
+    sprite->setAnchor(0,0);
     auto tm = TextureManager::getInstance();
     auto t = tm->loadTexture("map.png");
     sprite->setTextureRegion(t->getTextureRegion());
+
     scene->addChild(sprite);
     Director::getInstance()->run(scene);
-    auto line = MM<Line>::New();
-    line->setP0(Vec2(40, 40));
-    line->setP1(Vec2(400, 400));
-    sprite->addChild(line);
-    sprite->setPosition(S/2.f);
+
     {
         auto ml = MM<EventMouseListener>::New();
         ml->onPress = [sprite](EventMouse *e){
@@ -59,6 +59,7 @@ static bool init()
                 },"foobar", 3, 1, 17);
         auto life = MM<Sprite>::New();
         life->setTextureRegion(tm->loadTexture("N.png")->getTextureRegion());
+        //life->setFlipY(true);
         life->setColor(Color3(.31, .8, .3));
         sprite->addChild(life);
         life->setPosition(300, 300);
@@ -140,6 +141,20 @@ static bool init()
 
     auto eye = scene->getCamera().getEye();
     printf("eye = %f, %f\n", eye.x, eye.y);
+
+    BMFontSet::test();
+    auto bm = TextureManager::getInstance()->loadBMFontSet("font.fnt");
+    auto bmf = MM<BMFont>::New();
+    bmf->setBMfontSet(bm);
+    bmf->setString("hello，你好，世界！!!");
+    //bmf->setScale(3);
+    bmf->setColor(Color3(1,0,0));
+    bmf->setPosition(20,S.y/2.f);
+    sprite->addChild(bmf);
+    printf("fnt = %p, %s\n", bm.get(), bm->getFontName().c_str());
+    auto rsp = bm->findGlyph(' ')->getTextureRegion().get();
+    printf("' ' texture region size = %d x %d\n",
+           rsp->getRegionWidth(), rsp->getRegionHeight());
     return true;
 }
 

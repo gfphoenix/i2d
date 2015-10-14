@@ -60,15 +60,25 @@ void LightSprite::DrawSelf(Renderer *renderer)
 }
 
 Sprite::~Sprite(){}
-Sprite::Sprite(const Ref_ptr<TextureRegion2D> &region) : BaseSprite(region)
+Sprite::Sprite(const Ref_ptr<TextureRegion2D> &region) : LightSprite(region)
   , flipX_(false)
   , flipY_(false)
 {}
-Sprite::Sprite() :BaseSprite()
+Sprite::Sprite() :LightSprite()
     , flipX_(false)
     , flipY_(false)
 {}
 
+void Sprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize)
+{
+    auto tmp = region!=region_ && region;
+    if(tmp)
+        uv = region->getUV();
+    LightSprite::setTextureRegion(region, resetSize);
+    if(tmp)
+        updateFlip__();
+}
+#if 0
 void Sprite::DrawSelf(Renderer *renderer)
 {
     if(!region_)
@@ -79,7 +89,41 @@ void Sprite::DrawSelf(Renderer *renderer)
     shader->drawSize(getWorldTransform(), region_.get(), getSize());
     shader->popColor();
 }
-void Sprite::setFlipX__()
-{}
-void Sprite::setFlipY__()
-{}
+#endif
+
+void Sprite::updateFlip()
+{
+    if(!region_)
+        return;
+    uv = region_->getUV();
+    updateFlip__();
+}
+
+// TL  TR
+// BL  BR
+// flipX 0-1 2-3
+// flipY 0-2 1-3
+// flipX & flipY 0-3 1-2
+void Sprite::updateFlip__()
+{
+    auto v=0;
+    v |= flipX_ ? 1 : 0;
+    v |= flipY_ ? 2 : 0;
+    switch (v) {
+    case 1: // flipX
+        std::swap(uv.uv[0], uv.uv[1]);
+        std::swap(uv.uv[2], uv.uv[3]);
+        break;
+    case 2: // flipY
+        std::swap(uv.uv[0], uv.uv[2]);
+        std::swap(uv.uv[1], uv.uv[3]);
+        break;
+    case 3: // flipX & flipY
+        std::swap(uv.uv[0], uv.uv[3]);
+        std::swap(uv.uv[1], uv.uv[2]);
+        break;
+    case 4:
+    default:
+        break;
+    }
+}

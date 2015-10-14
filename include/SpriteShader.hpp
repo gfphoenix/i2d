@@ -12,6 +12,10 @@ class Renderer;
 class SpriteShader : public Shader
 {
     protected:
+        GLuint vShader_;
+        GLuint fRGBA_;
+        GLuint fAlpha_;
+
         // attribute location
         GLint model_xy_;
         GLint uv_;

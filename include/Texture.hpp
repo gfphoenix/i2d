@@ -49,7 +49,7 @@ class Texture2D final: public Resource
         GLuint id_;
         int width_;
         int height_;
-        // GL_LUMINANCE, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA,
+        // GL_ALPHA, GL_LUMINANCE, GL_LUMINANCE_ALPHA, GL_RGB, GL_RGBA,
         int format_;
         void Dispose()override;
         void init(const Image_RGBA8 &image);

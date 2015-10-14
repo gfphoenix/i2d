@@ -1,0 +1,14 @@
+#ifdef GL_ES
+precision lowp float;
+#endif
+
+varying vec2 myUV;
+varying vec4 myColor;
+
+uniform sampler2D mySampler2D;
+
+void main(){
+    vec4 tmp = myColor * texture2D(mySampler2D, myUV);
+    gl_FragColor = clamp(tmp, 0.0, 1.0);
+}
+
