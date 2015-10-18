@@ -1,29 +1,98 @@
 #ifndef BMFONT_HPP
 #define BMFONT_HPP
+#include "glyph.hpp"
 #include "Ref.hpp"
-#include "BMFontSet.hpp"
-#include "Node.hpp"
-#include <vector>
+#include "ResourceManager.hpp"
 
-class Renderer;
-class BMFont : public Node
+#include <string>
+#include <map>
+#include <unordered_map>
+#include <vector>
+#include <stdint.h>
+class BMFont : public Resource
 {
 public:
+    static inline uint32_t makeup32(uint16_t first, uint16_t second)
+    {
+        return (((uint32_t)first)<<16) | ((uint32_t)second);
+    }
+    static inline uint16_t extract0(uint32_t v)
+    {
+        return (uint16_t)(v>>16);
+    }
+    static inline uint16_t extract1(uint32_t v)
+    {
+        return (uint16_t)(v&0x0000ffff);
+    }
+    static inline bool checkUCS16(long id)
+    {
+        return id>0 && id<((1L)<<16);
+    }
+
+    static BMFont *load(const char *fnt);
+    static void test();
+    virtual void Dispose()override;
     BMFont();
-    virtual ~BMFont();
-    void setString(const std::string &str);
-    void setString(std::string &&str);
-    const std::string &getString()const{return str_;}
-    unsigned getCharSize()const{return codes_.size();}
-    uint16_t getCharAt(unsigned idx){return codes_[idx];}
-    template <typename T>
-    void setBMfontSet(T bmSet){bmSet_=std::forward<T>(bmSet);}
-    void DrawSelf(Renderer *renderer)override;
+    void dump()const;
+    inline const std::string &getFontName()const{return fontName_;}
+    inline const std::string &getFontFileName()const{return textureFileName_;}
+    inline const Ref_ptr<Texture2D> &getTexture2D()const{return texture_;}
+    inline int getFontSize()const{return size_;}
+    inline int getLineHeight()const{return lineHeight_;}
+    inline int getBase()const{return base_;}
+    enum class PADDING{
+        LEFT,RIGHT,TOP,BOTTOM,
+    };
+    enum class SPACE{
+        LEFT,RIGHT,
+    };
+
+    inline int getPadding(PADDING idx)const
+    {
+        int i = (int)idx;
+        //if(i<0 || i>3)
+        //    return 0;
+        return padding_[i];
+    }
+    inline int getSpace(SPACE idx)const
+    {
+        return space_[(int)idx];
+    }
+    int getStringWidth(const char *utf8String)const;
+    const Glyph *findGlyph(uint16_t ucs16)const;
+    int findKerning(uint16_t first, uint16_t second)const;
+
 protected:
-    void updateCodes();
-    Ref_ptr<BMFontSet> bmSet_;
-    std::string str_;
-    std::vector<uint16_t> codes_;
+    static bool parseChar(BMFont &out, const char *p);
+    static bool parseCommon(BMFont &out, const char *p);
+    static bool parseInfo(BMFont &out, const char *p);
+    static bool parseKerning(BMFont &out, const char *p);
+    static bool parsePage(BMFont &out, const char *p);
+    void addGlyph(const Glyph &g);
+    void addKerning(uint16_t first, uint16_t second, int amount);
+    Ref_ptr<Texture2D> texture_;
+    std::string fontName_;
+    std::string textureFileName_;
+
+//    std::map<uint16_t, Glyph> charmap_;
+    std::unordered_map<uint16_t, Glyph> charmap_;
+    std::unordered_map<uint16_t, int> kerning_;
+//    std::vector<Glyph> charset_;
+//    std::vector<std::pair<uint32_t, int>> kerning_;
+
+    int size_;
+    int lineHeight_;
+    int base_;
+    union{
+    int8_t padding_[4];
+    struct{
+    int8_t padding_L_;
+    int8_t padding_R_;
+    int8_t padding_T_;
+    int8_t padding_B_;
+    };
+    };
+    int8_t space_[2];
 };
 
 #endif // BMFONT_HPP

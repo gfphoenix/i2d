@@ -22,22 +22,11 @@ class BaseSprite : public Node
 private:
         void initShader();
 };
-class LightSprite : public BaseSprite
-{
-protected:
-    UV uv;
-public:
-    LightSprite(const Ref_ptr<TextureRegion2D> &region);
-    inline LightSprite():BaseSprite(){}
-    virtual ~LightSprite(){}
-    virtual void setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize=true)override;
-    virtual void DrawSelf(Renderer *renderer)override;
-};
 
-class Sprite : public LightSprite
+class Sprite : public BaseSprite
 {
     protected:
-        //V224_Quad quad_;
+        UV uv; // to support flip
         bool flipX_;
         bool flipY_;
 
@@ -47,7 +36,7 @@ class Sprite : public LightSprite
     public:
         Sprite();
         Sprite(const Ref_ptr<TextureRegion2D> &region);
-        //virtual void DrawSelf(Renderer *scene)override;
+        virtual void DrawSelf(Renderer *renderer)override;
         virtual void setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize=true)override;
 
         // flip

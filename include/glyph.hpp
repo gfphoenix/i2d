@@ -17,7 +17,7 @@ public:
     inline const Ref_ptr<TextureRegion2D> &getTextureRegion()const{return texture_;}
     void dump()const;
 protected:
-    friend class BMFontSet;
+    friend class BMFont;
     Ref_ptr<TextureRegion2D> texture_;
     uint16_t unicode16_;
     uint16_t x_,y_;

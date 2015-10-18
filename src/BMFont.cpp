@@ -1,91 +1,414 @@
 #include "BMFont.hpp"
-#include <Renderer.hpp>
-#include <SpriteShader.hpp>
+#include <glyph.hpp>
+#include <mm.hpp>
 
-BMFont::BMFont()
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+
+BMFont::BMFont(){}
+
+void BMFont::dump()const
 {
-    setShader(SpriteShader::getInstance());
+    printf("face=\"%s\", size=%d, padding=%d,%d,%d,%d, space=%d,%d\n",
+           fontName_.c_str(), (int)size_,
+           (int)padding_[0], (int)padding_[1],
+           (int)padding_[2], (int)padding_[3],
+            (int)space_[0], (int)space_[1]);
+    printf("lineHeight=%d, base=%d, texture file name=\"%s\", glyph count=%d\n",
+           (int)lineHeight_, (int)base_, textureFileName_.c_str(), (int)charmap_.size());
+
+//    for(auto it=charmap_.begin(), end=charmap_.end(); it!=end; ++it){
+//        it->second.dump();
+//    }
+    //for(auto const &x : charset_)
+    //    x.dump();
+
+//    printf("kernings count= %d\n", (int)kerning_.size());
+//    for(auto const &x : kerning_){
+//        printf("kerning first=%d, second=%d, amount=%d\n",
+//               (int)extract0(x.first), (int)extract1(x.first), x.second);
+//    }
 }
-BMFont::~BMFont(){}
-void BMFont::DrawSelf(Renderer *renderer)
+
+void BMFont::addGlyph(const Glyph &g)
 {
-    if(!bmSet_ || codes_.empty())
-        return;
-    auto bm = bmSet_.get();
-    auto sh = static_cast<SpriteShader*>(getShader());
-    renderer->Use(sh);
-    Vec2 pos;
-    int x = 0, y=bm->getBase();
-
-    auto const &T = getWorldTransform();
-    //sh->pushTransform(getWorldTransform());
-    sh->pushColor(getColor());
-
-    for(uint16_t v : codes_){
-        auto g = bm->findGlyph(v);
-        if(!g)
-            continue;
-        auto rr = g->getTextureRegion().get();
-        pos.x = x + g->xOffset();
-        pos.y = y - g->yOffset() - g->height();// rr->getRegionHeight();
-        //sh->drawOffset(rr, pos);
-        sh->draw(T, rr, pos, rr->getRectSize());
-        x += g->xAdvance();
+    if(charmap_.find(g.code())!=charmap_.end()){
+        // already exist, bad fnt file
+        return ;
     }
-    sh->popColor();
-    //sh->popTransform();
+    charmap_.insert({g.code(), g});
 }
 
-void BMFont::setString(const std::string &str)
+const Glyph *BMFont::findGlyph(uint16_t ucs16)const
 {
-    str_ = str;
-    updateCodes();
+    auto x = charmap_.find(ucs16);
+    if(x==charmap_.end())
+        return nullptr;
+    return &x->second;
 }
 
-void BMFont::setString(std::string &&str)
+int BMFont::findKerning(uint16_t first, uint16_t second)const
 {
-    str_ = std::move(str);
-    updateCodes();
+    auto v = makeup32(first, second);
+    auto x = kerning_.find(v);
+    return x==kerning_.end() ? 0 : x->second;
 }
 
-// 0x0000 - 0x007f  => 0b 0xxx xxxx
-// 0x0080 - 0x07ff  => 0b 110x xxxx 10xx xxxx
-// 0x0800 - 0xffff  => 0b 1110 xxxx 10xx xxxx 10xx xxxx
-static inline bool isB1(uint8_t c){return (c & 0x80) == 0; }
-static inline bool isB2(uint8_t c){return (c & 0xe0) == 0xc0;}
-static inline bool isB3(uint8_t c){return (c & 0xf0) == 0xe0;}
-static inline bool isMB(uint8_t c){return (c & 0xc0) == 0x80;}
-void BMFont::updateCodes()
+void BMFont::addKerning(uint16_t first, uint16_t second, int amount)
 {
-    auto p = (const uint8_t*)(str_.c_str());
-    auto len = str_.size();
-    codes_.clear();
-    while(len>0){
-        if(isB1(*p)){ //0x00-0x7f
-            codes_.push_back((uint16_t)(*p++));
-            len--;
-        }else if(isB2(*p)){
-            if(len>1 && isMB(p[1])){
-                uint16_t a = 0x1f & (*p);
-                uint16_t b = 0x3f & p[1];
-                uint16_t v = (a<<6) | b;
-                codes_.push_back(v);
-            }
-            p += 2;
-            len -=2;
-        }else if(isB3(*p)){
-            if(len>2 && isMB(p[1]) && isMB(p[2])){
-                uint16_t a = (*p) & 0x0f;
-                uint16_t b = p[1] & 0x3f;
-                uint16_t c = p[2] & 0x3f;
-                uint16_t v = (a<<12) | (b<<6) | c;
-                codes_.push_back(v);
-            }
-            p += 3;
-            len -=3;
-        }else{ // skip one bad byte
-            p++;
-            len--;
+    auto v = makeup32(first, second);
+    if(kerning_.find(v)!=kerning_.end()){
+        // already exists
+        return;
+    }
+    kerning_.insert({v,amount});
+}
+
+// copy `"xxyy"` to buffer with size=n
+static int parseString(const char *data, char *buffer, int n)
+{
+    int i=0;
+    char *p=buffer;
+    if(data==nullptr || *data!='"' || --n<=0)
+        goto out;
+    data++;
+
+    while(*data!='\0' && *data!='"' && i < n){
+        *p++ = *data++;
+        i++;
+    }
+    if(*data!='"')
+        i=0;
+
+out:
+    buffer[i] = '\0';
+    return i;
+}
+
+bool BMFont::parseInfo(BMFont &out, const char *p)
+{
+    const char *q;
+    char tmp[128];
+    if(p==nullptr || !(p[0]=='i' && p[1]=='n' && p[2]=='f' && p[3]=='o'))
+        return false;
+    // face
+    q = strstr(p, "face=");
+    if(q==nullptr)
+        return false;
+    q+=5;
+    q+=parseString(q, tmp, sizeof(tmp));
+    out.fontName_ = tmp;
+    p=q;
+
+    // size;
+    q = strstr(p, "size=");
+    if(q==nullptr)
+        return false;
+    q+=5;
+    out.size_ = strtol(q, nullptr, 10);
+    p=q;
+
+    // padding
+    q = strstr(p, "padding=");
+    q+=8;
+    {
+        int padding[4];
+        sscanf(q, "%d,%d,%d,%d",
+               padding, padding+1, padding+2, padding+3);
+        out.padding_[0] = padding[0];
+        out.padding_[1] = padding[1];
+        out.padding_[2] = padding[2];
+        out.padding_[3] = padding[3];
+    }
+    p=q;
+
+    // spacing
+    q = strstr(p, "spacing=");
+    if(q==nullptr)
+        return false;
+    q+=8;
+    {
+        int spacing[2];
+        sscanf(q, "%d,%d", spacing, spacing+1);
+        out.space_[0] = spacing[0];
+        out.space_[1] = spacing[1];
+    }
+    return true;
+}
+
+bool BMFont::parseCommon(BMFont &out, const char *p)
+{
+    const char *q;
+    if(p==nullptr || memcmp(p, "common", 6))
+        return false;
+    p+= 7;
+
+    // line-height
+    q = strstr(p, "lineHeight=");
+    if(q==nullptr)
+        return false;
+    q+=11;
+    out.lineHeight_ = strtol(q, nullptr, 10);
+    p=q;
+
+    // base
+    q = strstr(p, "base=");
+    if(q==nullptr)
+        return false;
+    q+=5;
+    out.base_ = strtol(q, nullptr, 10);
+    p=q;
+
+    // check page
+    q = strstr(p, "pages=");
+    if(q==nullptr)
+        return false;
+    q+=6;
+    int n = strtol(q, nullptr, 10);
+    if(n>1){
+        fprintf(stderr, "Pages=%d > 1 is not supported...\n", n);
+        return false;
+    }
+    return true;
+}
+
+bool BMFont::parsePage(BMFont &out, const char *p)
+{
+    const char *q;
+    if(p==nullptr || memcmp(p, "page", 4))
+        return false;
+    p+=4;
+    q = strstr(p, "file=");
+    if(q==nullptr)
+        return false;
+    q+= 5;
+    char tmp[128];
+    parseString(q, tmp, sizeof(tmp));
+    out.textureFileName_ = tmp;
+    return out.textureFileName_.size()>0;
+}
+
+static int parseChars(const char *p)
+{
+    if(p==nullptr || memcmp(p, "chars", 5))
+        return 0;
+    p+=5;
+    p = strstr(p, "count=");
+    if(p==nullptr)
+        return 0;
+    p+=6;
+    int n = strtol(p, nullptr, 10);
+    return n;
+}
+
+bool BMFont::parseChar(BMFont &out, const char *p)
+{
+    if(p==nullptr || memcmp(p, "char", 4))
+        return false;
+    p+=4;
+    Glyph g;
+    int id, x, y, w, h, offx, offy, xadvance;
+    // id
+    p = strstr(p, "id=");
+    if(p==nullptr)
+        return false;
+    p+=3;
+    id = strtol(p, nullptr, 10);
+
+    // x,y
+    p = strstr(p, "x=");
+    if(p==nullptr)
+        return false;
+    p+=2;
+    x = strtol(p, nullptr, 10);
+
+    p = strstr(p, "y=");
+    if(p==nullptr)
+        return false;
+    p+=2;
+    y = strtol(p, nullptr, 10);
+
+    // w, h
+    p = strstr(p, "width=");
+    if(p==nullptr)
+        return false;
+    p+=6;
+    w = strtol(p, nullptr, 10);
+
+    p = strstr(p, "height=");
+    if(p==nullptr)
+        return false;
+    p+=7;
+    h = strtol(p, nullptr, 10);
+
+    // offx, offy
+    p = strstr(p, "xoffset=");
+    if(p==nullptr)
+        return false;
+    p+=8;
+    offx = strtol(p, nullptr, 10);
+
+    p = strstr(p, "yoffset=");
+    if(p==nullptr)
+        return false;
+    p+=8;
+    offy = strtol(p, nullptr, 10);
+
+    // xadvance
+    p = strstr(p, "xadvance=");
+    if(p==nullptr)
+        return false;
+    p+=9;
+    xadvance = strtol(p, nullptr, 10);
+
+    {
+        // check
+        if(!checkUCS16(id)){
+            fprintf(stderr, "id is tooo large or <=0 : %d\n", (int)id);
+            return false;
+        }
+        g.unicode16_ = (uint16_t)id;
+        g.x_            = x;
+        g.y_            = y;
+        g.width_        = w;
+        g.height_       = h;
+        g.bearingX_     = offx;
+        g.bearingY_     = offy;
+        g.xadvance_     = xadvance;
+        g.texture_      = out.texture_->getTextureRegion(x, y, w, h, RegionDirection::BOTTOM);
+    }
+    out.addGlyph(g);
+    return true;
+}
+
+static int parseKernings(const char *p)
+{
+    if(p==nullptr || memcmp(p, "kernings", 8))
+        return 0;
+    p+=8;
+    p = strstr(p, "count=");
+    if(p==nullptr)
+        return 0;
+    p+=6;
+    return strtol(p, nullptr, 10);
+}
+
+bool BMFont::parseKerning(BMFont &out, const char *p)
+{
+    long first, second, amount;
+    if(p==nullptr || memcmp(p, "kerning", 7))
+        return false;
+    p+=8;
+    // first
+    p = strstr(p, "first=");
+    if(p==nullptr)
+        return false;
+    p+=6;
+    first = strtol(p, nullptr, 10);
+    // second
+    p = strstr(p, "second=");
+    if(p==nullptr)
+        return false;
+    p+=7;
+    second = strtol(p, nullptr, 10);
+    // amount
+    p = strstr(p, "amount=");
+    if(p==nullptr)
+        return false;
+    p+=7;
+    amount = strtol(p, nullptr, 10);
+    {
+        // check
+        if(!checkUCS16(first) || !checkUCS16(second)){
+            fprintf(stderr, "bad first or second code value(%d,%d)\n",
+                    (int)first, (int)second);
+            return false;
         }
     }
+    out.addKerning((uint16_t)first, (uint16_t)second, amount);
+    return true;
+}
+
+BMFont *BMFont::load(const char *fnt)
+{
+    auto file = fopen(fnt, "r");
+    if(file==nullptr)
+        return nullptr;
+    char buffer[1024];
+    char *p;
+    BMFont *tmpObj = MM<BMFont>::New();
+    BMFont &TMP = *tmpObj;
+    BMFont *out=nullptr;
+    int n;
+    // parse info
+    p = fgets(buffer, sizeof(buffer), file);
+    if(!parseInfo(TMP, p))
+        goto out;
+    // common
+    p = fgets(buffer, sizeof(buffer), file);
+    if(!parseCommon(TMP, p))
+        goto out;
+    // page
+    p = fgets(buffer, sizeof(buffer), file);
+    if(!parsePage(TMP, p))
+        goto out;
+    {// load texture
+        printf("file=<%s>\n", TMP.textureFileName_.c_str());
+        TMP.texture_ = TextureManager::getInstance()->loadTexture(TMP.textureFileName_);
+        printf("tex=%p\n", TMP.texture_.get());
+    }
+    // chars
+    p = fgets(buffer, sizeof(buffer), file);
+    n = parseChars(p);
+    if(n<=0)
+        goto out;
+    while(n-->0){
+        p = fgets(buffer, sizeof(buffer), file);
+        if(!parseChar(TMP, p))
+            goto out;
+    }
+    // special care
+    p = fgets(buffer, sizeof(buffer), file);
+    if(parseChar(TMP, p)){
+    // kernings, optional
+        p = fgets(buffer, sizeof(buffer), file);
+    }
+    n = parseKernings(p);
+    while(n-->0){
+        p = fgets(buffer, sizeof(buffer), file);
+        if(!parseKerning(TMP, p))
+            //goto out;
+            break;
+    }
+
+    out = tmpObj;
+    tmpObj = nullptr;
+    out->dump();
+out:
+    fclose(file);
+    MM<BMFont>::Del(tmpObj);
+    return out;
+}
+
+void BMFont::Dispose(){}
+
+void BMFont::test()
+{
+//    Ref_ptr<BMFont> f = load("font.fnt");
+    Ref_ptr<BMFont> f = TextureManager::getInstance()->loadBMFontSet("font.fnt");
+    if(f){
+        f->dump();
+    }else{
+        fprintf(stderr, "nil\n");
+    }
+    printf("count = %d\n", f->getTexture2D()->UseCount());
+    {
+    printf("&&&&&&&&&&&&&&&&&  f=%p, tex=%p\n", f.get(), f->getTexture2D().get());
+    auto bm = TextureManager::getInstance()->loadBMFontSet("font.fnt");
+    printf("fnt = %p, %s\n", bm.get(), bm->getFontName().c_str());
+    printf("******************\n");
+    printf("count = %d, %d\n", f->getTexture2D()->UseCount(), bm->getTexture2D()->UseCount());
+    }
+    printf("count = %d\n", f->getTexture2D()->UseCount());
 }

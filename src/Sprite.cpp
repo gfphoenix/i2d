@@ -25,71 +25,47 @@ void BaseSprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool r
 }
 void BaseSprite::DrawSelf(Renderer *renderer)
 {
-    auto region = region_.get();
-    if(!region)
+    auto r = region_.get();
+    if(!r)
         return;
     auto shader = static_cast<SpriteShader*>(getShader());
     renderer->Use(shader);
     shader->pushColor(getColor());
-    shader->drawSize(getWorldTransform(), region, getSize());
+    shader->drawSize(getWorldTransform(), r, getSize());
     shader->popColor();
 }
-LightSprite::LightSprite(const Ref_ptr<TextureRegion2D> &region)
-    :BaseSprite(region)
+
+Sprite::~Sprite(){}
+Sprite::Sprite(const Ref_ptr<TextureRegion2D> &region) : BaseSprite(region)
+  , flipX_(false)
+  , flipY_(false)
 {
     auto r = region.get();
     if(r)
         uv = r->getUV();
 }
-void LightSprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize)
-{
-    if(region!=region_ && region)
-        uv = region->getUV();
-    BaseSprite::setTextureRegion(region, resetSize);
-}
-void LightSprite::DrawSelf(Renderer *renderer)
-{
-    auto r = region_.get();
-    if(!r)
-        return;
-    auto sh = static_cast<SpriteShader*>(getShader());
-    renderer->Use(sh);
-    sh->pushColor(getColor());
-    sh->drawUV(getWorldTransform(), r->getTexture2D().get(), uv, getSize());
-    sh->popColor();
-}
-
-Sprite::~Sprite(){}
-Sprite::Sprite(const Ref_ptr<TextureRegion2D> &region) : LightSprite(region)
-  , flipX_(false)
-  , flipY_(false)
-{}
-Sprite::Sprite() :LightSprite()
+Sprite::Sprite() :BaseSprite()
     , flipX_(false)
     , flipY_(false)
 {}
 
 void Sprite::setTextureRegion(const Ref_ptr<TextureRegion2D> &region, bool resetSize)
 {
-    auto tmp = region!=region_ && region;
-    if(tmp)
-        uv = region->getUV();
-    LightSprite::setTextureRegion(region, resetSize);
-    if(tmp)
-        updateFlip__();
+    BaseSprite::setTextureRegion(region, resetSize);
+    updateFlip();
 }
-#if 0
+
 void Sprite::DrawSelf(Renderer *renderer)
 {
-    if(!region_)
+    auto r = region_.get();
+    if(!r)
         return;
     auto shader = static_cast<SpriteShader*>(getShader());
     renderer->Use(shader);
     shader->pushColor(getColor());
-    shader->drawSize(getWorldTransform(), region_.get(), getSize());
+    shader->drawUV(getWorldTransform(), r->getTexture2D().get(), uv, getSize());
     shader->popColor();
 }
-#endif
 
 void Sprite::updateFlip()
 {

@@ -1,5 +1,5 @@
 #include <Ref.hpp>
-#include <BMFontSet.hpp>
+#include <BMFont.hpp>
 #include <Texture.hpp>
 #include <TextureManager.hpp>
 #include <mm.hpp>
@@ -138,15 +138,15 @@ Ref_ptr<TextureAtlas> TextureManager::loadTextureAtlas(const std::string &name)
     auto ta = dynamic_cast<TextureAtlas*>(p);
     return ta;
 }
-BMFontSet *TextureManager::loadBMFontSet__(const std::string &name)
+BMFont *TextureManager::loadBMFontSet__(const std::string &name)
 {
-    return BMFontSet::load(name.c_str());
+    return BMFont::load(name.c_str());
 }
-Ref_ptr<BMFontSet> TextureManager::loadBMFontSet(const std::string &name)
+Ref_ptr<BMFont> TextureManager::loadBMFontSet(const std::string &name)
 {
     auto x = get(name);
     auto p = x.get();
-    return dynamic_cast<BMFontSet*>(p);
+    return dynamic_cast<BMFont*>(p);
 }
 
 // do loading job : load texture or texture-atlas

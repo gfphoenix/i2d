@@ -69,6 +69,8 @@ public:
     virtual void drawTriangleFan(const Vec2 *points, int n);
     virtual void drawTriangleFan(const Point *points, int n);
 
+    virtual void drawRect(const Vec2 &bl, const Vec2 &size);
+    virtual void drawRect(float x, float y, float w, float h);
 // transform
     virtual void drawBatch(const Mat3 &transform, DrawMode mode, const Point *p, int N);
     virtual void drawBatch(const Mat3 &transform, DrawMode mode, const Vec2 *p, int N);

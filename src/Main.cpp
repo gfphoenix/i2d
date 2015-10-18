@@ -1,10 +1,12 @@
 #include <App.hpp>
+#include <Label.hpp>
 #include <BMFont.hpp>
-#include <BMFontSet.hpp>
 #include <Director.hpp>
 #include <EventListener.hpp>
 #include <types.hpp>
 #include <stdio.h>
+#include <Brush.hpp>
+#include <Log.hpp>
 #include <Scene.hpp>
 #include <StageLayer.hpp>
 #include <Sprite.hpp>
@@ -26,13 +28,13 @@ static bool init()
     sprite->setFlipX(true);
     sprite->setAnchor(0,0);
     auto tm = TextureManager::getInstance();
-    auto t = tm->loadTexture("map.png");
+    auto t = tm->loadTexture("bg.jpg");
     sprite->setTextureRegion(t->getTextureRegion());
-
+    sprite->setFlipX(true);
     scene->addChild(sprite);
     Director::getInstance()->run(scene);
 
-    {
+//    {
         auto ml = MM<EventMouseListener>::New();
         ml->onPress = [sprite](EventMouse *e){
             auto p = e->getCursorWorld();
@@ -124,7 +126,7 @@ static bool init()
             return true;
         };
         life->addEventListener(ml2);
-    }
+//    }
     printf("size = %f, %f", sprite->getWidth(), sprite->getHeight());
     auto const &oxy = scene->getViewOrigin();
     auto const &size = scene->getViewSize();
@@ -142,19 +144,27 @@ static bool init()
     auto eye = scene->getCamera().getEye();
     printf("eye = %f, %f\n", eye.x, eye.y);
 
-    BMFontSet::test();
+//    BMFontSet::test();
     auto bm = TextureManager::getInstance()->loadBMFontSet("font.fnt");
-    auto bmf = MM<BMFont>::New();
+    auto bmf = MM<Label>::New();
     bmf->setBMfontSet(bm);
-    bmf->setString("hello，你好，世界！!!");
-    //bmf->setScale(3);
+    bmf->setString("hI,AVAV.世界！KEY=jQ!!");
+    bmf->setScale(3.2);
     bmf->setColor(Color3(1,0,0));
-    bmf->setPosition(20,S.y/2.f);
+    bmf->setPosition(240,80);
+//    bmf->setAnchor(0,0);
     sprite->addChild(bmf);
-    printf("fnt = %p, %s\n", bm.get(), bm->getFontName().c_str());
+    Log::d("fnt = %p, %s\n", bm.get(), bm->getFontName().c_str());
     auto rsp = bm->findGlyph(' ')->getTextureRegion().get();
     printf("' ' texture region size = %d x %d\n",
            rsp->getRegionWidth(), rsp->getRegionHeight());
+
+    auto rect = MM<RectShape>::New();
+    rect->setAnchor(0,0);
+    rect->setPosition(40, 40);
+    rect->setSize(200, 200);
+    rect->setColor(Color4(1.f,0,0,.4f));
+    sprite->addChild(rect);
     return true;
 }
 

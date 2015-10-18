@@ -205,6 +205,27 @@ void PrimitiveShader::drawTriangleFan(const Point *points, int n)
         *p++ = *q++;
     }
 }
+void PrimitiveShader::drawRect(const Vec2 &bl, const Vec2 &size)
+{
+    prepare(DrawMode::TRIANGLES);
+    int N = buffer_.size();
+    buffer_.resize(N+6);
+    auto p = &buffer_[N];
+    p[0].pos = bl;
+    p[1].pos = Vec2(bl.x+size.x, bl.y);
+    p[2].pos = Vec2(bl.x+size.x, bl.y+size.y);
+    p[3].pos = bl;
+    p[4].pos = p[2].pos;
+    p[5].pos = Vec2(bl.x, bl.y+size.y);
+    auto const & c = getColor4();
+    for(int i=0; i<6; i++){
+        p->color = c; p++;
+    }
+}
+void PrimitiveShader::drawRect(float x, float y, float w, float h)
+{
+   drawRect(Vec2(x,y), Vec2(w,h));
+}
 
 void PrimitiveShader::drawBatch(DrawMode mode, const Vec2 *pos, int N)
 {
@@ -446,6 +467,7 @@ void PrimitiveShader::Flush()
     // Send our transformation to the currently bound shader,
     // in the "MVP" uniform
     auto const &pv = renderer->getCamera().getPV();
+    glEnable(GL_BLEND);
     if(hasTransform()){
         //m[0][2],m[1][2] is always 0
         auto const &m = getTransform();
@@ -494,6 +516,7 @@ void PrimitiveShader::Flush()
     glDisableVertexAttribArray(model_xy_);
     glDisableVertexAttribArray(color_);
 
+    glDisable(GL_BLEND);
     Unuse();
     buffer_.clear();
     renderer->addRenderCall();

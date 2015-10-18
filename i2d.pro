@@ -55,10 +55,10 @@ HEADERS += \
     src/stb_image.h \
     src/stb_image_write.h \
     include/glyph.hpp \
-    include/BMFontSet.hpp \
-    include/BMFont.hpp \
     include/Pen.hpp \
-    include/Brush.hpp
+    include/Brush.hpp \
+    include/Label.hpp \
+    include/BMFont.hpp
 
 SOURCES += \
     src/Action.cpp \
@@ -90,10 +90,11 @@ SOURCES += \
     src/TextureLoader.cpp \
     src/TextureManager.cpp \
     src/glyph.cpp \
-    src/BMFontSet.cpp \
-    src/BMFont.cpp \
     src/Pen.cpp \
-    src/Brush.cpp
+    src/Brush.cpp \
+    src/Label.cpp \
+    src/BMFont.cpp \
+    src/Log.cpp
 
 
 unix: LIBS += -lglfw
