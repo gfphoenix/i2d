@@ -1,5 +1,6 @@
 #ifndef BMFONT_HPP
 #define BMFONT_HPP
+#include "Buffer.hpp"
 #include "glyph.hpp"
 #include "Ref.hpp"
 #include "ResourceManager.hpp"
@@ -29,6 +30,7 @@ public:
         return id>0 && id<((1L)<<16);
     }
 
+    static BMFont *load(const Buffer &buffer);
     static BMFont *load(const char *fnt);
     static void test();
     virtual void Dispose()override;
@@ -74,11 +76,8 @@ protected:
     std::string fontName_;
     std::string textureFileName_;
 
-//    std::map<uint16_t, Glyph> charmap_;
     std::unordered_map<uint16_t, Glyph> charmap_;
     std::unordered_map<uint16_t, int> kerning_;
-//    std::vector<Glyph> charset_;
-//    std::vector<std::pair<uint32_t, int>> kerning_;
 
     int size_;
     int lineHeight_;

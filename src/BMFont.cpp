@@ -1,4 +1,5 @@
 #include "BMFont.hpp"
+#include <File.hpp>
 #include <glyph.hpp>
 #include <mm.hpp>
 
@@ -329,9 +330,75 @@ bool BMFont::parseKerning(BMFont &out, const char *p)
     out.addKerning((uint16_t)first, (uint16_t)second, amount);
     return true;
 }
+BMFont *BMFont::load(const Buffer &data)
+{
+    LineReader lr(data);
+    unsigned char buffer[1024];
+    char *p=(char *)buffer;
+    BMFont *tmpObj = MM<BMFont>::New();
+    BMFont &TMP = *tmpObj;
+    BMFont *out=nullptr;
+    int n;
+    // parse info
+    //p = fgets(buffer, sizeof(buffer), file);
+    lr.readLine(buffer, sizeof(buffer));
+    if(!parseInfo(TMP, p))
+        goto out;
+    // common
+    //p = fgets(buffer, sizeof(buffer), file);
+    lr.readLine(buffer, sizeof(buffer));
+    if(!parseCommon(TMP, p))
+        goto out;
+    // page
+    //p = fgets(buffer, sizeof(buffer), file);
+    lr.readLine(buffer, sizeof(buffer));
+    if(!parsePage(TMP, p))
+        goto out;
+    {// load texture
+        printf("file=<%s>\n", TMP.textureFileName_.c_str());
+        TMP.texture_ = TextureManager::getInstance()->loadTexture(TMP.textureFileName_);
+        printf("tex=%p\n", TMP.texture_.get());
+    }
+    // chars
+    //p = fgets(buffer, sizeof(buffer), file);
+    lr.readLine(buffer, sizeof(buffer));
+    n = parseChars(p);
+    if(n<=0)
+        goto out;
+    while(n-->0){
+        //p = fgets(buffer, sizeof(buffer), file);
+        lr.readLine(buffer, sizeof(buffer));
+        if(!parseChar(TMP, p))
+            goto out;
+    }
+    // special care
+    //p = fgets(buffer, sizeof(buffer), file);
+    lr.readLine(buffer, sizeof(buffer));
+    if(parseChar(TMP, p)){
+    // kernings, optional
+        //p = fgets(buffer, sizeof(buffer), file);
+        lr.readLine(buffer, sizeof(buffer));
+    }
+    n = parseKernings(p);
+    while(n-->0){
+        //p = fgets(buffer, sizeof(buffer), file);
+        lr.readLine(buffer, sizeof(buffer));
+        if(!parseKerning(TMP, p))
+            //goto out;
+            break;
+    }
+
+    out = tmpObj;
+    tmpObj = nullptr;
+    out->dump();
+out:
+    MM<BMFont>::Del(tmpObj);
+    return out;
+}
 
 BMFont *BMFont::load(const char *fnt)
 {
+#if 0
     auto file = fopen(fnt, "r");
     if(file==nullptr)
         return nullptr;
@@ -389,6 +456,26 @@ out:
     fclose(file);
     MM<BMFont>::Del(tmpObj);
     return out;
+#else
+    auto file = FileUtils::Open(fnt);
+    if(!file)
+        return nullptr;
+    BMFont *result=nullptr;
+    auto len = file->Length();
+    if(len<10 || len>(1UL<<30))
+        return nullptr;
+    Buffer b;
+    b.size = len;
+    b.addr = new unsigned char[len];
+    auto n = file->Read(b.addr, b.size);
+    if(n<b.size)
+        goto out;
+    result = load(b);
+out:
+    delete b.addr;
+    b.addr = nullptr;
+    return result;
+#endif
 }
 
 void BMFont::Dispose(){}
