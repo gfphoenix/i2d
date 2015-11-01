@@ -54,11 +54,12 @@ HEADERS += \
     include/VertexUVColor.hpp \
     src/stb_image.h \
     src/stb_image_write.h \
-    include/glyph.hpp \
     include/Pen.hpp \
     include/Brush.hpp \
     include/Label.hpp \
-    include/BMFont.hpp
+    include/BMFont.hpp \
+    include/Buffer.hpp \
+    include/Glyph.hpp
 
 SOURCES += \
     src/Action.cpp \
@@ -89,12 +90,15 @@ SOURCES += \
     src/Texture.cpp \
     src/TextureLoader.cpp \
     src/TextureManager.cpp \
-    src/glyph.cpp \
     src/Pen.cpp \
     src/Brush.cpp \
     src/Label.cpp \
     src/BMFont.cpp \
-    src/Log.cpp
+    src/Log.cpp \
+    src/Buffer.cpp \
+    src/File.cpp \
+    src/File_pc.cpp \
+    src/Glyph.cpp
 
 
 unix: LIBS += -lglfw

@@ -3,18 +3,18 @@
 int LineReader::readLine(unsigned char *p, size_t n, bool skipRemaining)
 {
     auto const SIZE = buffer_.size;
-    if(pos_>=SIZE){
+    if(pos_>=(long)SIZE){
         if(p&&n>0)
             *p='\0';
         return -1; // end
     }
     auto end=pos_;
     auto q = buffer_.addr;
-    for(; end<SIZE; end++){
+    for(; end<(long)SIZE; end++){
         if(q[end]=='\r' || q[end]=='\n')
             break;
     }
-    auto len = end - pos_;
+    size_t len = (size_t)(end - pos_);
     if(n<len)
         len = n;
     if(len>0)
@@ -30,12 +30,12 @@ int LineReader::readLine(unsigned char *p, size_t n, bool skipRemaining)
     if(len<n)
         p[len] = '\0';
 
-    if(end<SIZE){
+    if(end<(long)SIZE){
         pos_ = end+1;
-        if(pos_<SIZE && q[end]=='\r' && q[pos_]=='\n')
+        if(pos_<(long)SIZE && q[end]=='\r' && q[pos_]=='\n')
             pos_++;
     }else{
-        pos_ = SIZE;
+        pos_ = (long)SIZE;
     }
 out:
     return len;

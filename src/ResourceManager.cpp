@@ -1,4 +1,5 @@
 #include <debug>
+#include <Log.hpp>
 #include <ResourceManager.hpp>
 
 // 1. 释放非内存资源（不含内存，如纹理，文件，。。。
@@ -27,7 +28,7 @@ Ref_ptr<Resource> ResourceManager::get(const string &name)
         res->setResourceName(name);
         link(res.get());
     }
-    printf("RM::get(%s)=%p\n", name.c_str(), res.get());
+    Log::i("RM::get(%s)=%p\n", name.c_str(), res.get());
     return res;
 }
 

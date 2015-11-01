@@ -1,4 +1,6 @@
 #include <config.hpp>
+#include <Buffer.hpp>
+#include <File.hpp>
 #include <TextureLoader.hpp>
 #include <functional>
 
@@ -18,7 +20,18 @@ Image_RGBA8 Image_RGBA8::xxCreate(const std::function<unsigned char *(int *w,int
 
 Image_RGBA8 Image_RGBA8::create(const char *filename, CompType ct)
 {
-    return xxCreate(std::bind(stbi_load, filename, _1, _2, _3, (int)ct));
+    auto file = FileUtils::Open(filename);
+    auto NIL = Image_RGBA8(nullptr, 0, 0, CompType::Default);
+    if(!file)
+        return NIL;
+    auto len = file->Length();
+    if(len==0 || len>(128UL<<20))
+        return NIL;
+    BufferA buffer(len);
+    auto n = file->Read(buffer.Addr(), buffer.Size());
+    if(n<(int)buffer.Size())
+        return NIL;
+    return xxCreate(std::bind(stbi_load_from_memory, buffer.Addr(), buffer.Size(), _1, _2, _3, (int)ct));
 }
 static int xxRead(void *user, char *data, int size)
 {
@@ -124,7 +137,6 @@ void Image_RGBA8::reverseY()
 //    ir.IsEof = [file]()->bool{
 //        return feof(file) != 0;
 //    };
-//    printf("*********** start callbacks ImageReader addr=%p\n", &ir);
 //    img = Image::create(ir);
 //
 //    fclose(file);

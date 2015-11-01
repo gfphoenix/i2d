@@ -17,7 +17,6 @@ Texture2D *Texture2D::create(ResourceManager *manager, const Image_RGBA8 &img, c
     t->init(img);
     t->setResourceManager(manager);
     t->setResourceName(name);
-    printf("T2d=%p\n", t);
     return t;
 }
 
@@ -36,7 +35,6 @@ void Texture2D::init(const Image_RGBA8 &img)
     switch(img.getCompType()){
         case CompType::LUMINANCE:
             format_ = GL_ALPHA; break;
-//            format_ = GL_LUMINANCE; break;
         case CompType::LUMINANCE_ALPHA:
             format_ = GL_LUMINANCE_ALPHA; break;
         case CompType::RGB:

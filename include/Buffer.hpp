@@ -6,6 +6,47 @@ struct Buffer
 {
     unsigned char *addr;
     size_t size;
+    Buffer(){}
+private:
+    Buffer(const Buffer &copy)=delete;
+    Buffer &operator=(const Buffer &copy)=delete;
+};
+class BufferA final : public Buffer
+{
+protected:
+
+public:
+    explicit BufferA(size_t N)
+    {
+        addr    = new unsigned char[N];
+        size    = N;
+    }
+    BufferA(BufferA &&tmp)
+    {
+        addr    = tmp.addr;
+        size    = tmp.size;
+        tmp.addr = nullptr;
+        tmp.size = 0;
+    }
+    BufferA & operator=(BufferA &&tmp)
+    {
+        addr = tmp.addr;
+        tmp.addr = nullptr;
+        size = tmp.size;
+        tmp.size = 0;
+        return *this;
+    }
+    ~BufferA()
+    {
+        delete []addr;
+    }
+    inline unsigned char *Addr(){return addr;}
+    inline const unsigned char *Addr()const{return addr;}
+    inline size_t Size()const{return size;}
+
+private:
+    BufferA(const BufferA &copy)=delete;
+    BufferA &operator =(const BufferA &tmp)=delete;
 };
 
 class LineReader final

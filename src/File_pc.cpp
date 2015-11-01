@@ -1,6 +1,6 @@
 #include <File.hpp>
 #include <mm.hpp>
-
+#include <unistd.h>
 std::vector<std::string> FileUtils::searchPaths_ = {{"."}};
 static std::string storagePath__ = "~";
 bool FileUtils::isStorageAvailable()
