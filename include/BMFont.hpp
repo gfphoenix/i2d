@@ -1,7 +1,7 @@
 #ifndef BMFONT_HPP
 #define BMFONT_HPP
 #include "Buffer.hpp"
-#include "glyph.hpp"
+#include "Glyph.hpp"
 #include "Ref.hpp"
 #include "ResourceManager.hpp"
 

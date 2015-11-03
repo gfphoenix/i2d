@@ -15,6 +15,7 @@
 #include <TextureManager.hpp>
 #include <mm.hpp>
 #include <ActionInterval.hpp>
+#include <File.hpp>
 
 Vec2 S = Vec2(480, 800);
 Vec2 R1;
@@ -23,6 +24,8 @@ Vec2 R2;
 Vec2 oldPos2;
 static bool init()
 {
+    FileUtils::addSearchPath("../resource");
+    FileUtils::addSearchPath("resource");
     auto scene = MM<Scene>::New(S);
     auto sprite = MM<Sprite>::New();
     sprite->setFlipX(true);

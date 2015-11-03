@@ -4,11 +4,18 @@ precision lowp float;
 
 varying vec2 myUV;
 varying vec4 myColor;
+uniform int ctype;
 
 uniform sampler2D mySampler2D;
-
+vec4 uv2Color()
+{
+    if(ctype==1)
+        return myColor *texture2D(mySampler2D,myUV).a;
+    return myColor * texture2D(mySampler2D, myUV);
+}
 void main(){
-    vec4 tmp = myColor * texture2D(mySampler2D, myUV);
+    //    vec4 tmp = myColor * texture2D(mySampler2D, myUV);
+    vec4 tmp = uv2Color();
     gl_FragColor = clamp(tmp, 0.0, 1.0);
 }
 

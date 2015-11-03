@@ -7,6 +7,8 @@
 #include <mm.hpp>
 #include <gl>
 #include <vector>
+
+#if 0
 #define GLSL(src) "\n" #src
 static const GLchar* vSrc = GLSL(
 attribute vec2 vertexPosition_model;
@@ -46,14 +48,15 @@ vec4 tmp=myColor*texture2D(mySampler2D,myUV).a;
 gl_FragColor=clamp(tmp,0.0,1.0);
 }
 );
+#endif
 Ref_ptr<SpriteShader> SpriteShader::self=nullptr;
 SpriteShader *SpriteShader::getInstance()
 {
     if(!self){
         //auto id = Shader::loadStrings(vsrc, fsrc);
         //auto id = Shader::loadFiles("defVertShader.shader", "defFragShader.shader");
-        //auto id = Shader::loadFiles("V2F_T2F_C4F_vert.es2.0", "V2F_T2F_C4F_frag.es2.0");
-        auto id = Shader::loadStrings(vSrc, fSrc);
+        auto id = Shader::loadFiles("V2F_T2F_C4F_vert.es2.0", "V2F_T2F_C4F_frag.es2.0");
+        //auto id = Shader::loadStrings(vSrc, fSrc);
         if(id==0)
             return nullptr;
         auto sh = MM<SpriteShader>::New();

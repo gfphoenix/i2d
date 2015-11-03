@@ -28,6 +28,7 @@ public:
     static void setLogger(const Ref_ptr<Logger> &log);
     static Cerror d(const char *fmt, ...);
     static Cerror i(const char *fmt, ...);
+    static Cerror e(const char *fmt, ...);
     static void panic(const char *fmt, ...);
 protected:
     static Cerror dumpLevel(const char *level, const char *fmt, va_list ap);

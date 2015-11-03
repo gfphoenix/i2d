@@ -57,6 +57,14 @@ Cerror Log::d(const char *fmt, ...)
     va_end(ap);
     return e;
 }
+Cerror Log::e(const char *fmt, ...)
+{
+    va_list ap;
+    va_start (ap, fmt);
+    auto e = dumpLevel("error", fmt, ap);
+    va_end(ap);
+    return e;
+}
 Cerror Log::i(const char *fmt, ...)
 {
     va_list ap;
