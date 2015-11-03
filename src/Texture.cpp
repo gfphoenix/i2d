@@ -1,6 +1,12 @@
 #include <types.hpp>
 #include <Texture.hpp>
 #include <mm.hpp>
+
+std::vector<std::pair<std::string,loadTA_func_t>> TextureAtlas::loaders_;
+void TextureAtlas::registerLoader(const char *suffix, loadTA_func_t fn)
+{
+    loaders_.push_back({{suffix, fn}});
+}
 RegionDirection TextureRegion2D::getRegionDirection()const
 {
     int bits = (int)RegionDirection::BOTTOM;
@@ -208,10 +214,28 @@ Ref_ptr<TextureRegion2D> TextureAtlas::get(const string &name)const
         return Ref_ptr<TextureRegion2D>();
     return x->second;
 }
+static bool match(const std::string &suffix, const std::string &filename)
+{
+    if(suffix=="*")
+        return true;
+    auto L1=suffix.size();
+    auto L2=filename.size();
+    if(L1>=L2)
+        return false;
+    return filename.compare(L2-L1, L1, suffix)==0;
+}
 AtlasConfig TextureAtlas::parseAtlasConfig(const string &atlasName)
 {
-    do{}while(!sizeof(atlasName));
     return AtlasConfig();
+}
+AtlasConfig TextureAtlas::parseAtlasConfig(const Buffer &buffer)
+{
+    AtlasConfig config;
+    for(auto const &x : loaders_){
+        if(match(x->first, atlasName) && x->second(config, buffer))
+            break;
+    }
+    return config;
 }
 TextureAtlas *TextureAtlas::create(const AtlasConfig &config)
 {

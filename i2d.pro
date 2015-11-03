@@ -58,7 +58,8 @@ HEADERS += \
     include/Pen.hpp \
     include/Brush.hpp \
     include/Label.hpp \
-    include/BMFont.hpp
+    include/BMFont.hpp \
+    include/Buffer.hpp
 
 SOURCES += \
     src/Action.cpp \
@@ -94,7 +95,10 @@ SOURCES += \
     src/Brush.cpp \
     src/Label.cpp \
     src/BMFont.cpp \
-    src/Log.cpp
+    src/Log.cpp \
+    src/File.cpp \
+    src/File_pc.cpp \
+    src/Buffer.cpp
 
 
 unix: LIBS += -lglfw

@@ -2,6 +2,7 @@
 #define _TEXTURE2D_H
 #include "types.hpp"
 #include <memory>
+#include <Buffer.hpp>
 #include <Ref.hpp>
 #include <ResourceManager.hpp>
 #include <TextureManager.hpp>
@@ -151,25 +152,32 @@ struct TextureConfig
     Wrap wrap_;
     std::vector<Item> items_;
 };
-struct AtlasConfig
+struct AtlasConfig final
 {
     std::vector<AtlasConfig> config_;
+    AtlasConfig(AtlasConfig &&cfg):
+        config_(std::move(cfg.config_)){}
+    AtlasConfig(){}
 };
+typedef bool (*loadTA_func_t)(AtlasConfig &config, const Buffer &buffer);
 // texture-atlas is created and hold by texture-manager
 // texture-region getting from texture-atlas is rotated properly
 class TextureAtlas final : public Resource
 {
     private:
+        static std::vector<std::pair<std::string,loadTA_func_t>> loaders_;
         std::unordered_map<std::string, Ref_ptr<Texture2D>> textures_;
         std::unordered_map<std::string, Ref_ptr<TextureRegion2D>> regions_;
         inline void Dispose(){}
         friend class TextureManager;
     protected:
         static AtlasConfig parseAtlasConfig(const std::string &atlasName);
+        static AtlasConfig parseAtlasConfig(const Buffer &buffer);
         static TextureAtlas *create(const AtlasConfig &config);
         static TextureAtlas *create(const std::string &atlasName);
         const std::string getInfo()const{return std::string("texture-atlas");}
     public:
         Ref_ptr<TextureRegion2D> get(const std::string &name)const;
+        static void registerLoader(const char *suffix, loadTA_func_t fn);
 };
 #endif
