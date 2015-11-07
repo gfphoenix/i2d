@@ -14,11 +14,11 @@ Scene::Scene(const Vec2 &designSize, ResolutionPolicy policy):
     stage_ = this;
     scheduler_ = Scheduler::create();
     actionManager_ = ActionManager::create();
-    scheduler_->schedule(this, "ActionManager",
-            [this](float dt)->bool{
-            actionManager_->update(dt);
-            return false;
-            });
+//    scheduler_->schedule(this, "ActionManager",
+//            [this](float dt)->bool{
+//            actionManager_->update(dt);
+//            return false;
+//            });
 }
 Scene::~Scene()
 {

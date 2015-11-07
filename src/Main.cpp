@@ -151,10 +151,10 @@ static bool init()
     auto bm = TextureManager::getInstance()->loadBMFontSet("font.fnt");
     auto bmf = MM<Label>::New();
     bmf->setBMfontSet(bm);
-    bmf->setString("hI,AVAV.世界！KEY=jQ!!");
+    bmf->setString("HhI,AVAV.世界！KEY=jQ!!");
     bmf->setScale(3.2);
     bmf->setColor(Color3(1,0,0));
-    bmf->setPosition(240,80);
+    bmf->setPosition(240,380);
 //    bmf->setAnchor(0,0);
     sprite->addChild(bmf);
     Log::d("fnt = %p, %s\n", bm.get(), bm->getFontName().c_str());

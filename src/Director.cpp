@@ -21,7 +21,7 @@ Director *Director::getInstance()
     }
     return director_.get();
 }
-void Director::updateDeltaTime()
+float Director::updateDeltaTime()
 {
     struct timeval now;
     deltaTime_ = 0;
@@ -34,6 +34,7 @@ void Director::updateDeltaTime()
     duration_ += deltaTime_;
 out:
     lastTime_ = now;
+    return deltaTime_;
 }
 void Director::onWinSizeChanged()
 {
@@ -118,8 +119,11 @@ void Director::mainLoop()
     while(running_ && !view_->shouldClose()){
         usleep(15000);
         switchScene();
-        updateDeltaTime();
-        getRunningScene()->getScheduler()->update(getDeltaTime());
+        auto dt = updateDeltaTime();
+        auto scene = getRunningScene();
+        scene->getScheduler()->update(dt);
+        scene->getActionManager()->update(dt);
+//        getRunningScene()->getScheduler()->update(getDeltaTime());
         view_->pollEvents();
         onDraw();
         view_->swapBuffer();

@@ -59,7 +59,8 @@ HEADERS += \
     include/Label.hpp \
     include/BMFont.hpp \
     include/Buffer.hpp \
-    include/Glyph.hpp
+    include/Glyph.hpp \
+    include/primitiveshader_vuc.hpp
 
 SOURCES += \
     src/Action.cpp \

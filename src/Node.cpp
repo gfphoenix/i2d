@@ -25,9 +25,15 @@ Node::Node()
 , stage_(nullptr)
 , shader_(nullptr)
 , running_(false)
+, paused_(false)
 , visible_(true)
+, pauseAction_(false)
+, pauseScheduler_(false)
 , dirtyChildrenOrder_(false)
 , dirty_localTransform_(true)
+, dirty_localTransform_1_(true)
+, dirty_worldTransform_(true)
+, dirty_worldTransform_1_(true)
 {
     auto d = Director::getInstance();
     am_ = d->getIdleActionManager();

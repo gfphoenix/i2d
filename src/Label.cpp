@@ -21,12 +21,12 @@ void Label::DrawSelf(Renderer *renderer)
     Vec2 pos;
     uint16_t prev = 0;
 
-    //if(false)
+    if(false)
     {
         auto shader = PrimitiveShader::getInstance();
 
         renderer->Use(shader);
-        Color4 ccs[3] = {Color4(1,0,0,.6f), Color4(0,1,0,.6f), Color4(0,0,1,.6f)};
+        Color4 ccs[3] = {Color4(1,0,0,.5f), Color4(0,1,0,.5f), Color4(0,0,1,.5f)};
         int i=0;
         shader->pushTransform(T);
 
@@ -53,7 +53,19 @@ void Label::DrawSelf(Renderer *renderer)
         shader->pushColor(Color4(1,1,1,1));
         shader->drawLine(Vec2(0, y), Vec2(getWidth(), y));
         auto lh = bmSet_->getLineHeight();
+        auto sz = bmSet_->getFontSize();
         shader->pushColor(Color4(0,0,1,1));
+        {
+            shader->drawLine(Vec2(0, sz), Vec2(getWidth(), sz));
+            auto g = bmSet_->findGlyph(codes_.at(0));
+            if(g){
+//                auto rr = g->getTextureRegion();
+                auto tmp = y - g->yOffset();
+                shader->pushColor(Color4(1,0,0,1));
+                shader->drawLine(Vec2(0, tmp), Vec2(getWidth(), tmp));
+                shader->popColor();
+            }
+        }
         shader->drawLine(Vec2(0, 0), Vec2(getWidth(), 0));
         shader->popColor();
         shader->drawLine(Vec2(0, y-lh), Vec2(getWidth(), y-lh));

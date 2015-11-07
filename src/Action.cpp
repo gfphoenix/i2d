@@ -3,9 +3,9 @@
 void ActionInterval::step(float dt)
 {
     if(isFirstFrame())
-	elapsed_ = 0.f;
+        elapsed_ = 0.f;
     else
-	elapsed_ += dt;
+        elapsed_ += dt;
 }
 void ActionSet::setNode(Node *node)
 {

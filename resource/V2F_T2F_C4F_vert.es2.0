@@ -13,7 +13,6 @@ uniform mat4 myPV;
 
 void main(){
 	gl_Position =  myPV * vec4(vertexPosition_model, 0, 1);
-	
 	myUV = vertexUV;
     myColor = vertexColor;
 }

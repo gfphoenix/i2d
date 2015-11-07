@@ -47,7 +47,7 @@ class Director : public Ref
     protected:
         friend class MM<Director>;
         Director();
-        void updateDeltaTime();
+        float updateDeltaTime();
 
         Ref_ptr<GLView> view_;
         Ref_ptr<ActionManager> am_;

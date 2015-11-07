@@ -8,7 +8,6 @@
 #include <gl>
 #include <vector>
 
-#if 0
 #define GLSL(src) "\n" #src
 static const GLchar* vSrc = GLSL(
 attribute vec2 vertexPosition_model;
@@ -18,7 +17,7 @@ varying vec2 myUV;
 varying vec4 myColor;
 uniform mat4 myPV;
 void main(){
-gl_Position=myPV*vec4(vertexPosition_model,0,1);
+gl_Position=myPV*vec4(vertexPosition_model,0.0,1.0);
 myUV=vertexUV;
 myColor=vertexColor;
 }
@@ -32,11 +31,10 @@ varying vec2 myUV;
 varying vec4 myColor;
 uniform sampler2D mySampler2D;
 void main(){
-vec4 tmp=myColor*texture2D(mySampler2D,myUV);
-gl_FragColor=clamp(tmp,0.0,1.0);
+gl_FragColor=myColor*texture2D(mySampler2D,myUV);
 }
 );
-static const GLchar *fSrcAlpha = GLSL(
+static const GLchar *fA8 = GLSL(
 #ifdef GL_ES
 precision lowp float;
 #endif
@@ -44,15 +42,24 @@ varying vec2 myUV;
 varying vec4 myColor;
 uniform sampler2D mySampler2D;
 void main(){
-vec4 tmp=myColor*texture2D(mySampler2D,myUV).a;
-gl_FragColor=clamp(tmp,0.0,1.0);
+gl_FragColor=myColor*texture2D(mySampler2D,myUV).a;
 }
 );
+static const GLchar *fA8_2 = GLSL(
+#ifdef GL_ES
+precision lowp float;
 #endif
-Ref_ptr<SpriteShader> SpriteShader::self=nullptr;
+varying vec2 myUV;
+varying vec4 myColor;
+uniform sampler2D mySampler2D;
+void main(){
+gl_FragColor=vec4(myColor.rgb, myColor.a*texture2D(mySampler2D,myUV).a);
+}
+);
+Ref_ptr<SpriteShader> SpriteShader::rgba_=nullptr;
 SpriteShader *SpriteShader::getInstance()
 {
-    if(!self){
+    if(!rgba_){
         //auto id = Shader::loadStrings(vsrc, fsrc);
         //auto id = Shader::loadFiles("defVertShader.shader", "defFragShader.shader");
         auto id = Shader::loadFiles("V2F_T2F_C4F_vert.es2.0", "V2F_T2F_C4F_frag.es2.0");
@@ -61,9 +68,9 @@ SpriteShader *SpriteShader::getInstance()
             return nullptr;
         auto sh = MM<SpriteShader>::New();
         sh->init(id);
-        self = sh;
+        rgba_ = sh;
     }
-    return self.get();
+    return rgba_.get();
 }
 
 SpriteShader::SpriteShader():

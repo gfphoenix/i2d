@@ -49,7 +49,7 @@ class ActionInterval : public FiniteTimeAction
         virtual void update()override{update(getPercent());}
         virtual void step(float dt)override;
         virtual bool isDone()const override{return elapsed_>=duration_;}
-        virtual void reset()override{elapsed_=-1.f;}
+        virtual void reset()override{elapsed_=0.f;}
         inline void init(float duration){
             Assert(duration>0, "ActionInterval duration<=0");
             duration_=duration;
@@ -156,7 +156,7 @@ class Repeat : public FiniteTimeAction
         Repeat * reverse() const override;
     protected:
         void init(unsigned long times){counter_=times;cc_=0;}
-        virtual bool isDone()const override{return cc_==counter_;}
+        virtual bool isDone()const override{return counter_!=(unsigned long)(-1) && cc_==counter_;}
         virtual void setNode(Node *node)override{Action::setNode(node);inner_->setNode(node);}
         virtual void update()override;
         virtual void step(float dt)override{inner_->step(dt);}

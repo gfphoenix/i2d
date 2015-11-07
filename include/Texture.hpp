@@ -172,7 +172,7 @@ class TextureAtlas final : public Resource
         friend class TextureManager;
     protected:
         static AtlasConfig parseAtlasConfig(const std::string &atlasName);
-        static AtlasConfig parseAtlasConfig(const Buffer &buffer);
+        static AtlasConfig parseAtlasConfig(const std::string &atlasName, const Buffer &buffer);
         static TextureAtlas *create(const AtlasConfig &config);
         static TextureAtlas *create(const std::string &atlasName);
         const std::string getInfo()const{return std::string("texture-atlas");}

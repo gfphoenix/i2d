@@ -5,7 +5,7 @@
 std::vector<std::pair<std::string,loadTA_func_t>> TextureAtlas::loaders_;
 void TextureAtlas::registerLoader(const char *suffix, loadTA_func_t fn)
 {
-    loaders_.push_back({{suffix, fn}});
+    loaders_.push_back({suffix, fn});
 }
 RegionDirection TextureRegion2D::getRegionDirection()const
 {
@@ -228,11 +228,11 @@ AtlasConfig TextureAtlas::parseAtlasConfig(const string &atlasName)
 {
     return AtlasConfig();
 }
-AtlasConfig TextureAtlas::parseAtlasConfig(const Buffer &buffer)
+AtlasConfig TextureAtlas::parseAtlasConfig(const std::string &atlasName, const Buffer &buffer)
 {
     AtlasConfig config;
     for(auto const &x : loaders_){
-        if(match(x->first, atlasName) && x->second(config, buffer))
+        if(match(x.first, atlasName) && x.second(config, buffer))
             break;
     }
     return config;

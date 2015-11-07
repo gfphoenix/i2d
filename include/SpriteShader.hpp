@@ -69,10 +69,18 @@ class SpriteShader : public Shader
         virtual void Render(Node *node)override;
         virtual void Flush()override;
         SpriteShader();
+        enum class Type{
+            ALPHA, RGB, RGBA,
+        };
+
         virtual ~SpriteShader();
         static SpriteShader *getInstance();
+        static SpriteShader *getShader(Type type);
+        static void DestroyAll();
 protected:
-        static Ref_ptr<SpriteShader> self;
+        static Ref_ptr<SpriteShader> rgba_;
+        static Ref_ptr<SpriteShader> rgb_;
+        static Ref_ptr<SpriteShader> alpha_;
         void pushData(const Vec2 &xy, const Vec2 &uv, const Color4 &color);
 };
 //Shader *getDefaultShader();
