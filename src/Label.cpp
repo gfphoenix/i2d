@@ -23,7 +23,7 @@ void Label::DrawSelf(Renderer *renderer)
 
     if(false)
     {
-        auto shader = PrimitiveShader::getInstance();
+        auto shader = PrimitiveShader_PC::getInstance();
 
         renderer->Use(shader);
         Color4 ccs[3] = {Color4(1,0,0,.5f), Color4(0,1,0,.5f), Color4(0,0,1,.5f)};

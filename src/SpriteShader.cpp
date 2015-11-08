@@ -494,15 +494,16 @@ void SpriteShader::Flush()
     CheckGL();
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer_);
     glDrawElements(GL_TRIANGLES, buffer_.size()/4*6, GL_UNSIGNED_SHORT, (void*)0);
-
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
     CheckGL();
 
-    glDisableVertexAttribArray(model_xy_);
-    glDisableVertexAttribArray(uv_);
     glDisableVertexAttribArray(color_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glDisableVertexAttribArray(uv_);
+    glDisableVertexAttribArray(model_xy_);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisable(GL_BLEND);
+    lastTexture_->unbind();
     Unuse();
     buffer_.clear();
     renderer->addRenderCall();

@@ -2,37 +2,7 @@
 #include "Renderer.hpp"
 #include "mm.hpp"
 
-/**
-static const char *vsrc = "\n"
-"void main(){\n"
-"}\n";
-*/
-PrimitiveShader::PrimitiveShader():
-    vbo_(0)
-{
-    colors_.push(Color4(1,1,1,1));
-}
-void PrimitiveShader::init()
-{
-    model_xy_ = getAttribLocation("i2d_Vertex");
-    color_  = getAttribLocation("i2d_Color");
-    pv_ = getUniformLocation("i2d_PV");
-    glGenBuffers(1, &vbo_);
-}
 
-PrimitiveShader *PrimitiveShader::getInstance()
-{
-    if(!self){
-        auto id = Shader::loadFiles("geom_vertex.txt", "geom_frag.txt");
-        if(id<=0)
-            return nullptr;
-        auto sh = MM<PrimitiveShader>::New();
-        sh->setProgramId(id);
-        sh->init();
-        self = sh;
-    }
-    return self.get();
-}
 void PrimitiveShader::pushTransform(const Mat3 &M)
 {
     Flush();
@@ -55,21 +25,58 @@ void PrimitiveShader::popTransform()
     Flush();
     transforms_.pop();
 }
-Ref_ptr<PrimitiveShader> PrimitiveShader::self = nullptr;
+
+/**
+static const char *vsrc = "\n"
+"void main(){\n"
+"}\n";
+*/
+PrimitiveShader_PC::PrimitiveShader_PC():
+    vbo_(0)
+{
+    colors_.push(Color4(1,1,1,1));
+}
+void PrimitiveShader_PC::init()
+{
+    model_xy_ = getAttribLocation("i2d_Vertex");
+    color_  = getAttribLocation("i2d_Color");
+    pv_ = getUniformLocation("i2d_PV");
+    glGenBuffers(1, &vbo_);
+}
+PrimitiveShader * PrimitiveShader::getInstance()
+{
+    return PrimitiveShader_PC::getInstance();
+}
+
+PrimitiveShader_PC *PrimitiveShader_PC::getInstance()
+{
+    if(!self){
+        auto id = Shader::loadFiles("geom_vertex.txt", "geom_frag.txt");
+        if(id<=0)
+            return nullptr;
+        auto sh = MM<PrimitiveShader_PC>::New();
+        sh->setProgramId(id);
+        sh->init();
+        self = sh;
+    }
+    return self.get();
+}
+
+Ref_ptr<PrimitiveShader_PC> PrimitiveShader_PC::self = nullptr;
 // no transform
-void PrimitiveShader::drawPoint(const Vec2 &p, const Color4 &color)
+void PrimitiveShader_PC::drawPoint(const Vec2 &p, const Color4 &color)
 {
     prepare(DrawMode::POINTS);
     buffer_.push_back(Point{p,color});
 }
 
-void PrimitiveShader::drawLine(const Vec2 &p0, const Vec2 &p1)
+void PrimitiveShader_PC::drawLine(const Vec2 &p0, const Vec2 &p1)
 {
     prepare(DrawMode::LINES);
     buffer_.push_back(Point{p0, getColor4()});
     buffer_.push_back(Point{p1, getColor4()});
 }
-void PrimitiveShader::drawLineStrip(const Vec2 *points, int n)
+void PrimitiveShader_PC::drawLineStrip(const Vec2 *points, size_t n)
 {
     prepare(DrawMode::LINES);
     int N = (int)buffer_.size();
@@ -86,7 +93,7 @@ void PrimitiveShader::drawLineStrip(const Vec2 *points, int n)
         p++;
     }
 }
-void PrimitiveShader::drawLineStrip(const Point *points, int n)
+void PrimitiveShader_PC::drawLineStrip(const Point *points, size_t n)
 {
     prepare(DrawMode::LINES);
     int N = (int)buffer_.size();
@@ -98,7 +105,7 @@ void PrimitiveShader::drawLineStrip(const Point *points, int n)
         *p++ = *++points;
     }
 }
-void PrimitiveShader::drawLineLoop(const Vec2 *points, int n)
+void PrimitiveShader_PC::drawLineLoop(const Vec2 *points, size_t n)
 {
     drawLineStrip(points, n);
     int N = buffer_.size();
@@ -108,7 +115,7 @@ void PrimitiveShader::drawLineLoop(const Vec2 *points, int n)
     p[1].pos = points[0];
     p[0].color = p[1].color = getColor4();
 }
-void PrimitiveShader::drawLineLoop(const Point *points, int n)
+void PrimitiveShader_PC::drawLineLoop(const Point *points, size_t n)
 {
     drawLineStrip(points, n);
     buffer_.push_back(points[n-1]);
@@ -116,7 +123,7 @@ void PrimitiveShader::drawLineLoop(const Point *points, int n)
 }
 
 
-void PrimitiveShader::drawTriangle(const Vec2 &p0, const Vec2 &p1, const Vec2 &p2, const Color4 &c0, const Color4 &c1, const Color4 &c2)
+void PrimitiveShader_PC::drawTriangle(const Vec2 &p0, const Vec2 &p1, const Vec2 &p2, const Color4 &c0, const Color4 &c1, const Color4 &c2)
 {
     prepare(DrawMode::TRIANGLES);
     int n = buffer_.size();
@@ -126,7 +133,7 @@ void PrimitiveShader::drawTriangle(const Vec2 &p0, const Vec2 &p1, const Vec2 &p
     p->pos = p1; p->color = c1; p++;
     p->pos = p2; p->color = c2;
 }
-void PrimitiveShader::drawTriangleStrip(const Vec2 *points, int n)
+void PrimitiveShader_PC::drawTriangleStrip(const Vec2 *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -152,7 +159,7 @@ void PrimitiveShader::drawTriangleStrip(const Vec2 *points, int n)
         p->pos = points[2]; p->color = color;
     }
 }
-void PrimitiveShader::drawTriangleStrip(const Point *points, int n)
+void PrimitiveShader_PC::drawTriangleStrip(const Point *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -176,7 +183,7 @@ void PrimitiveShader::drawTriangleStrip(const Point *points, int n)
         *p++ = points[2];
     }
 }
-void PrimitiveShader::drawTriangleFan(const Vec2 *points, int n)
+void PrimitiveShader_PC::drawTriangleFan(const Vec2 *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -191,7 +198,7 @@ void PrimitiveShader::drawTriangleFan(const Vec2 *points, int n)
         p->pos = *q++; p->color = color; p++;
     }
 }
-void PrimitiveShader::drawTriangleFan(const Point *points, int n)
+void PrimitiveShader_PC::drawTriangleFan(const Point *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -205,7 +212,7 @@ void PrimitiveShader::drawTriangleFan(const Point *points, int n)
         *p++ = *q++;
     }
 }
-void PrimitiveShader::drawRect(const Vec2 &bl, const Vec2 &size)
+void PrimitiveShader_PC::drawRect(const Vec2 &bl, const Vec2 &size)
 {
     prepare(DrawMode::TRIANGLES);
     int N = buffer_.size();
@@ -222,22 +229,22 @@ void PrimitiveShader::drawRect(const Vec2 &bl, const Vec2 &size)
         p->color = c; p++;
     }
 }
-void PrimitiveShader::drawRect(float x, float y, float w, float h)
+void PrimitiveShader_PC::drawRect(float x, float y, float w, float h)
 {
    drawRect(Vec2(x,y), Vec2(w,h));
 }
 
-void PrimitiveShader::drawBatch(DrawMode mode, const Vec2 *pos, int N)
+void PrimitiveShader_PC::drawBatch(DrawMode mode, const Vec2 *pos, size_t N)
 {
     prepare(mode);
     pushPoints(pos, N);
 }
-void PrimitiveShader::drawBatch(DrawMode mode, const Point *p, int N)
+void PrimitiveShader_PC::drawBatch(DrawMode mode, const Point *p, size_t N)
 {
     prepare(mode);
     pushPoints(p, N);
 }
-void PrimitiveShader::pushPoints(const Vec2 *points, int n, const Color4 &color)
+void PrimitiveShader_PC::pushPoints(const Vec2 *points, size_t n, const Color4 &color)
 {
     int N = (int)buffer_.size();
     buffer_.resize(N+n);
@@ -248,7 +255,7 @@ void PrimitiveShader::pushPoints(const Vec2 *points, int n, const Color4 &color)
         p++;
     }
 }
-void PrimitiveShader::pushPoints(const Point *points, int n)
+void PrimitiveShader_PC::pushPoints(const Point *points, size_t n)
 {
     buffer_.insert(buffer_.end(), points, points+n);
 }
@@ -266,14 +273,14 @@ inline static Vec2 transform_helper(const Mat3 &transform, const Vec2 &in)
     return Vec2(v);
 }
 
-void PrimitiveShader::drawPoint(const Mat3 &transform, const Vec2 &p, const Color4 &color)
+void PrimitiveShader_PC::drawPoint(const Mat3 &transform, const Vec2 &p, const Color4 &color)
 {
     prepare(DrawMode::POINTS);
     auto q = transform * Vec3(p,1);
     buffer_.push_back(Point{Vec2(q),color});
 }
 
-void PrimitiveShader::drawLine(const Mat3 &transform, const Vec2 &p0, const Vec2 &p1)
+void PrimitiveShader_PC::drawLine(const Mat3 &transform, const Vec2 &p0, const Vec2 &p1)
 {
     prepare(DrawMode::LINES);
     auto q = transform * Vec3(p0,1);
@@ -281,7 +288,7 @@ void PrimitiveShader::drawLine(const Mat3 &transform, const Vec2 &p0, const Vec2
     q = transform * Vec3(p1,1);
     buffer_.push_back(Point{Vec2(q), getColor4()});
 }
-void PrimitiveShader::drawLineStrip(const Mat3 &transform, const Vec2 *points, int n)
+void PrimitiveShader_PC::drawLineStrip(const Mat3 &transform, const Vec2 *points, size_t n)
 {
     prepare(DrawMode::LINES);
     int N = (int)buffer_.size();
@@ -301,7 +308,7 @@ void PrimitiveShader::drawLineStrip(const Mat3 &transform, const Vec2 *points, i
         p++;
     }
 }
-void PrimitiveShader::drawLineStrip(const Mat3 &transform, const Point *points, int n)
+void PrimitiveShader_PC::drawLineStrip(const Mat3 &transform, const Point *points, size_t n)
 {
     prepare(DrawMode::LINES);
     int N = (int)buffer_.size();
@@ -316,20 +323,20 @@ void PrimitiveShader::drawLineStrip(const Mat3 &transform, const Point *points, 
         *p++ = Point{Vec2(t),points->color};
     }
 }
-void PrimitiveShader::drawLineLoop(const Mat3 &transform, const Vec2 *points, int n)
+void PrimitiveShader_PC::drawLineLoop(const Mat3 &transform, const Vec2 *points, size_t n)
 {
     drawLineStrip(transform, points, n);
     buffer_.push_back(Point{transform_helper(transform, points[n-1]),getColor4()});
     buffer_.push_back(Point{transform_helper(transform, *points),getColor4()});
 }
-void PrimitiveShader::drawLineLoop(const Mat3 &transform, const Point *points, int n)
+void PrimitiveShader_PC::drawLineLoop(const Mat3 &transform, const Point *points, size_t n)
 {
     drawLineStrip(transform, points, n);
     buffer_.push_back(Point{transform_helper(transform, points[n-1].pos),points[n-1].color});
     buffer_.push_back(Point{transform_helper(transform, points[0].pos),points->color});
 }
 
-void PrimitiveShader::drawTriangle(const Mat3 &transform, const Vec2 &p0, const Vec2 &p1, const Vec2 &p2, const Color4 &c0, const Color4 &c1, const Color4 &c2)
+void PrimitiveShader_PC::drawTriangle(const Mat3 &transform, const Vec2 &p0, const Vec2 &p1, const Vec2 &p2, const Color4 &c0, const Color4 &c1, const Color4 &c2)
 {
     prepare(DrawMode::TRIANGLES);
     auto t = transform * Vec3(p0,1);
@@ -339,7 +346,32 @@ void PrimitiveShader::drawTriangle(const Mat3 &transform, const Vec2 &p0, const 
     t = transform * Vec3(p2,1);
     buffer_.push_back(Point{Vec2(t), c2});
 }
-void PrimitiveShader::drawTriangleStrip(const Mat3 &transform, const Vec2 *points, int n)
+void PrimitiveShader_PC::drawPoints(const Vec2 *points, size_t n)
+{
+
+}
+void PrimitiveShader_PC::drawPoints(const Mat3 &transforms, const Vec2 *points, size_t n)
+{
+
+}
+void PrimitiveShader_PC::drawLines(const Vec2 *points, size_t n)
+{
+
+}
+void PrimitiveShader_PC::drawLines(const Mat3 &transforms, const Vec2 *points, size_t n)
+{
+
+}
+void PrimitiveShader_PC::drawTriangles(const Vec2 *points, size_t n)
+{
+
+}
+void PrimitiveShader_PC::drawTriangles(const Mat3 &transforms, const Vec2 *points, size_t n)
+{
+
+}
+
+void PrimitiveShader_PC::drawTriangleStrip(const Mat3 &transform, const Vec2 *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -364,7 +396,7 @@ void PrimitiveShader::drawTriangleStrip(const Mat3 &transform, const Vec2 *point
        *p++ = Point{transform_helper(transform, points[2]), color};
     }
 }
-void PrimitiveShader::drawTriangleStrip(const Mat3 &transform, const Point *points, int n)
+void PrimitiveShader_PC::drawTriangleStrip(const Mat3 &transform, const Point *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -388,7 +420,7 @@ void PrimitiveShader::drawTriangleStrip(const Mat3 &transform, const Point *poin
           *p++ = Point{transform_helper(transform, points[2].pos), points[0].color};
     }
 }
-void PrimitiveShader::drawTriangleFan(const Mat3 &transform, const Vec2 *points, int n)
+void PrimitiveShader_PC::drawTriangleFan(const Mat3 &transform, const Vec2 *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -404,7 +436,7 @@ void PrimitiveShader::drawTriangleFan(const Mat3 &transform, const Vec2 *points,
         *p++ = Point{transform_helper(transform, *q++), color};
     }
 }
-void PrimitiveShader::drawTriangleFan(const Mat3 &transform, const Point *points, int n)
+void PrimitiveShader_PC::drawTriangleFan(const Mat3 &transform, const Point *points, size_t n)
 {
     prepare(DrawMode::TRIANGLES);
     int triangles = n-2;
@@ -420,17 +452,17 @@ void PrimitiveShader::drawTriangleFan(const Mat3 &transform, const Point *points
     }
 }
 
-void PrimitiveShader::drawBatch(const Mat3 &transform, DrawMode mode, const Point *p, int N)
+void PrimitiveShader_PC::drawBatch(const Mat3 &transform, DrawMode mode, const Point *p, size_t N)
 {
     prepare(mode);
     pushPoints(transform, p, N);
 }
-void PrimitiveShader::drawBatch(const Mat3 &transform, DrawMode mode, const Vec2 *p, int N)
+void PrimitiveShader_PC::drawBatch(const Mat3 &transform, DrawMode mode, const Vec2 *p, size_t N)
 {
     prepare(mode);
     pushPoints(transform, p, N);
 }
-void PrimitiveShader::pushPoints(const Mat3 &transform, const Vec2 *points, int n, const Color4 &color)
+void PrimitiveShader_PC::pushPoints(const Mat3 &transform, const Vec2 *points, size_t n, const Color4 &color)
 {
     int N = (int)buffer_.size();
     buffer_.resize(N+n);
@@ -439,7 +471,7 @@ void PrimitiveShader::pushPoints(const Mat3 &transform, const Vec2 *points, int 
         *p++ = Point{transform_helper(transform, *points++), color};
     }
 }
-void PrimitiveShader::pushPoints(const Mat3 &transform, const Point *points, int n)
+void PrimitiveShader_PC::pushPoints(const Mat3 &transform, const Point *points, size_t n)
 {
     int N = (int)buffer_.size();
     buffer_.resize(N+n);
@@ -451,12 +483,12 @@ void PrimitiveShader::pushPoints(const Mat3 &transform, const Point *points, int
 }
 
 // end of draw
-void PrimitiveShader::Render(Node *node)
+void PrimitiveShader_PC::Render(Node *node)
 {
 
 }
 
-void PrimitiveShader::Flush()
+void PrimitiveShader_PC::Flush()
 {
     if(buffer_.empty())
         return;

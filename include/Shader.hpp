@@ -5,7 +5,8 @@
 
 class Node;
 class Renderer;
-class Shader : public Ref {
+class Shader : public Ref
+{
     public:
         static GLuint compileShader(GLenum type, const char *src);
         static GLuint linkShader(GLuint s1, GLuint s2);
@@ -21,20 +22,6 @@ class Shader : public Ref {
         }
         virtual void Render(Node *node)=0;
         virtual void Flush()=0;
-
-        //inline void getUniformfv(GLint location, GLfloat *params) const {
-        //  glGetUniformfv(id_, location, params);
-        //}
-        //inline void getUniformiv(GLint location, GLint *params) const {
-        //  glGetUniformiv(id_, location, params);
-        //}
-        //inline void getUniformdv(GLint location, GLdouble *params) const {
-        //glGetUniformdv(id_, location, params);
-        //}
-        //inline void getUniformuiv(GLint location, GLuint *params) const {
-        //  glGetUniformuiv(id_, location, params);
-        //}
-        //inline void setUniform() const {}
 
     protected:
         friend class Renderer;

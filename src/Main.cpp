@@ -29,7 +29,9 @@ static bool init()
     auto scene = MM<Scene>::New(S);
     auto sprite = MM<Sprite>::New();
     sprite->setFlipX(true);
-    sprite->setAnchor(0,0);
+    //sprite->setAnchor(0,0);
+    auto sz = Director::getInstance()->getWinSize();
+    sprite->setPosition(sz.x/2, sz.y/2);
     auto tm = TextureManager::getInstance();
     auto t = tm->loadTexture("bg.jpg");
     sprite->setTextureRegion(t->getTextureRegion());

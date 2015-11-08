@@ -60,7 +60,7 @@ HEADERS += \
     include/BMFont.hpp \
     include/Buffer.hpp \
     include/Glyph.hpp \
-    include/primitiveshader_vuc.hpp
+    include/PrimitiveShader_PuC.hpp
 
 SOURCES += \
     src/Action.cpp \
@@ -99,7 +99,8 @@ SOURCES += \
     src/Buffer.cpp \
     src/File.cpp \
     src/File_pc.cpp \
-    src/Glyph.cpp
+    src/Glyph.cpp \
+    src/PrimitiveShader_PuC.cpp
 
 
 unix: LIBS += -lglfw

@@ -2,11 +2,11 @@
 #define PEN_HPP
 #include <types.hpp>
 
-class PrimitiveShader;
+class PrimitiveShader_PC;
 class Pen
 {
 public:
-    Pen(PrimitiveShader *shader);
+    Pen(PrimitiveShader_PC *shader);
     inline void setPosition(float x, float y){x_=x;y_=y;}
     inline void setPosition(const Vec2 &pos){setPosition(pos.x,pos.y);}
     inline float getX()const{return x_;}
@@ -22,7 +22,7 @@ public:
     // curve
 
 protected:
-    PrimitiveShader *shader_;
+    PrimitiveShader_PC *shader_;
     Color4 color_;
     float x_;
     float y_;

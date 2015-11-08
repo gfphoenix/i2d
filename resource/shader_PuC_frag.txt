@@ -1,0 +1,9 @@
+#ifdef GL_ES
+precision lowp float;
+#endif
+uniform vec4 i2d_Color;
+void main(void)
+{
+gl_FragColor = i2d_Color;
+}
+

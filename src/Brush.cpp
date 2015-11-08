@@ -8,7 +8,7 @@ Brush::Brush()
 
 RectShape::RectShape()
 {
-    setShader(PrimitiveShader::getInstance());
+    setShader(PrimitiveShader_PC::getInstance());
 }
 RectShape::~RectShape(){}
 
@@ -21,7 +21,7 @@ RectShape::~RectShape(){}
 
 void RectShape::DrawSelf(Renderer *r)
 {
-    auto sh = static_cast<PrimitiveShader*>(getShader());
+    auto sh = static_cast<PrimitiveShader_PC*>(getShader());
     r->Use(sh);
     auto const &an = getAnchor();
     auto const &pos = getPosition();
