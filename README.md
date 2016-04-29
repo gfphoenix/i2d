@@ -1,5 +1,6 @@
 # i2d
 a simple and clean designed 2d game engine
+(REFACTORING NOW)
 
 # Design Phylosophy:
 1. a simple and clean API to use, no noise
